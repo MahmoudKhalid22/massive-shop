@@ -1,0 +1,43 @@
+Backend
+- Authentication and Authorization based system
+1- admin panel product management ( customer service I )
+
+2- vendor management panel ( produce management ) ( customer I )
+
+3- user panel ( customer II )
+
+- Features
+1- product catelog
+2- shopping cart and checkout
+3- payment integration
+4- Order management ( track the order )
+5- Inventory management ( notifications when products run out, and allow admins to update stock levels. 
+Inventory alerts for low stock can also be included. )
+6- Product Reviews & Ratings
+7- Search & Filtering
+8- Responsive Design
+9- Security & Data Privacy
+10- Discounts & Coupons
+11- Shipping Integration
+
+
+
+( authentication, authorization, payment, third party libs(google, facebook, sendinblue, <pending>), docker, AWS, websocket, 
+sorting, pagination, filteration, searching, cerbot(https certificate), 
+)
+Nodejs classess based architecture <typescript> <oop>, redis, socket.io, design patterns
+-------------------
+Storage
+mongodb<atlas> - design database - AWS - cloudinary
+
+-------------------
+Frontend
+Reactjs - React query - tailwind(0) or styled component(1) or chakraUI(1) or mui (1) - typescript - performance
+-------------------
+timeline
+week 1 ( tuesday to monday ) -> design database, initialize the project, authentication and authorization system
+week 2 ( tuesday to monday ) -> produce catelog, shopping cart, payment integration, order management, inventory management
+week 3 ( tuesday to monday ) -> Produce review and ratings, search and filtering and sorting, responsive, discount and coupons, 
+api design, data security, shipping integration
+week 4 ( tuesday to monday ) -> test the system, unit testing and different os testing, deploy to AWS, deploy frontend, testing 
+deployed system, container for the system
