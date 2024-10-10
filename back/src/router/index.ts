@@ -3,6 +3,6 @@ import { userRoutes } from "../modules/user/index";
 
 const router = Router();
 
-router.use("/user", userRoutes.getRoutes());
+router.use("/", userRoutes.getRoutes());
 
 export { router as combinedRoutes };

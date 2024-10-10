@@ -7,7 +7,9 @@ export class UserService implements UserDAO {
   constructor(service: UserRepoType) {
     this.service = service;
   }
-  async createUser(user: UserType): Promise<void> {}
+  async createUser(user: UserType): Promise<void> {
+    const saved = await this.service.createUser(user);
+  }
 
   async getUserById(_id: String): Promise<UserType | null> {
     return null;
