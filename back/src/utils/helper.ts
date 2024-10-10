@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 
 export class CustomError extends Error {
-  private statusCode: number;
-  private status: string;
+  public statusCode: number;
+  public status: string;
   private isOperational: boolean;
 
   constructor(message: string, statusCode: number) {
@@ -15,10 +15,13 @@ export class CustomError extends Error {
 }
 
 export const errorHandler = function (controllerFunc: any) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    controllerFunc(req, res, next).catch((err: Error) => {
-      const error = new CustomError(err.message, 500);
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await controllerFunc(req, res, next);
+    } catch (err: any) {
+      const statusCode = err.statusCode || 500; // Get statusCode from error or default to 500
+      const error = new CustomError(err.message, statusCode);
       next(error);
-    });
+    }
   };
 };
