@@ -5,7 +5,9 @@ export default function dbConnection() {
     console.log("Attempting to connect to the database...");
 
     // Attempt to connect to the MongoDB database
-    mongoose.connect("mongodb://127.0.0.1:27017/ecommerce_business");
+    mongoose.connect("mongodb://127.0.0.1:27017/ecommerce_business", {
+      autoIndex: true,
+    });
 
     console.log("Connection attempt finished.");
 

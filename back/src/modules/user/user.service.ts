@@ -3,6 +3,7 @@ import { UserDAO } from "../../utils/DAO";
 import { UserRepoType } from "./user.repo";
 import { UserType } from "../../utils/types";
 import { EmailService } from "../../utils/email.service";
+import { userSchema } from "./user.validation";
 
 export class UserService implements UserDAO {
   private service: UserRepoType;
@@ -19,11 +20,15 @@ export class UserService implements UserDAO {
       if (password !== confirmPassword) {
         throw new Error("password is not matched");
       }
-      user.password = await bcrypt.hash(password, 8);
-      // const emailToSend = new EmailService(email, firstname + " " + lastname);
-      // await emailToSend.sendEmail();
+      await userSchema.validate(user);
 
-      const saved = await this.service.createUser(user);
+      user.password = await bcrypt.hash(password, 8);
+      user.confirmPassword = null;
+
+      // const emailToSend = new EmailService(email, firstname + " " + lastname);
+      // await emailToSend.sendEmail()
+
+      // await this.service.createUser(user);
     } catch (err) {
       throw err;
     }

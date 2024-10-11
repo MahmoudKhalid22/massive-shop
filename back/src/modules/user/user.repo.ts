@@ -8,8 +8,13 @@ export class UserRepo implements UserDAO {
   constructor(model: Model<UserType>) {
     this.model = model;
   }
-  async createUser(user: UserType): Promise<any> {
-    return await this.model.create(user);
+  async createUser(user: UserType): Promise<void> {
+    try {
+      const savedUser = new this.model(user);
+      await savedUser.save();
+    } catch (err) {
+      throw err;
+    }
   }
   async getUserById(_id: String): Promise<UserType | null> {
     return null;

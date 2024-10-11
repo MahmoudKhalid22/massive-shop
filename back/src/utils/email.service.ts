@@ -1,5 +1,8 @@
-var Sib = require("sib-api-v3-sdk");
-var client = Sib.ApiClient.instance;
+// var Sib = require("sib-api-v3-sdk");
+import Sib from "sib-api-v3-sdk";
+import dotenv from "dotenv";
+const client = Sib.ApiClient.instance;
+dotenv.config();
 
 export class EmailService {
   private sender: string = "zankalon@market.com";

@@ -13,7 +13,7 @@ export class UserController {
   }
   private createUser = errorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const user = await this.service.createUser(req.body);
+      await this.service.createUser(req.body);
       res.send({
         message:
           "Email has been sent to you, please check your inbox email to verify your account",

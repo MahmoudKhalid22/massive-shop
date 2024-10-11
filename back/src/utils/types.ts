@@ -1,10 +1,9 @@
 export interface UserType {
-  _id?: string;
   firstname: string;
   lastname: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword: string | null;
   verified: boolean;
   role: "admin" | "customer-service" | "vendor" | "user";
   address: string;
