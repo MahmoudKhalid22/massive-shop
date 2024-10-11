@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
-import { UserDAO } from "../../utils/DAO";
+import { UserDAO } from "../../utils/types/DAO";
 import { UserService } from "./user.service";
-import { UserType } from "../../utils/types";
+import { UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
 import { NextFunction } from "express-serve-static-core";
 

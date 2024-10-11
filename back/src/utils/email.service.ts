@@ -1,4 +1,3 @@
-// var Sib = require("sib-api-v3-sdk");
 import Sib from "sib-api-v3-sdk";
 import dotenv from "dotenv";
 const client = Sib.ApiClient.instance;

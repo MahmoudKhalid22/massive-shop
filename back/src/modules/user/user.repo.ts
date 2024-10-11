@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
-import { UserDAO } from "../../utils/DAO";
-import { UserType } from "../../utils/types";
+import { UserDAO } from "../../utils/types/DAO";
+import { UserType } from "../../utils/types/types";
 import User from "./user.model";
 
 export class UserRepo implements UserDAO {
