@@ -7,12 +7,14 @@ export class EmailService {
   private sender: string = "zankalon@market.com";
   private recieverEmail: string;
   private recieverName: string;
+  private token: string;
   private apiKey = client.authentications["api-key"];
   private apiInstance: any;
 
-  constructor(reciever: string, recieverName: string) {
+  constructor(reciever: string, recieverName: string, token: string) {
     this.recieverEmail = reciever;
     this.recieverName = recieverName;
+    this.token = token;
   }
 
   async sendEmail() {
@@ -33,7 +35,7 @@ export class EmailService {
         sender,
         to: reciever,
         subject: "Welcome",
-        htmlContent: `<h2>Welcome, ${this.recieverName}. You have successfully created an email</h2><p>You are in the right place. To achieve all benefit from our platform, please verify your account</p><button>Verify</button>`,
+        htmlContent: `<h2>Welcome, ${this.recieverName}. You have successfully created an email</h2><p>You are in the right place. To achieve all benefit from our platform, please verify your account</p><a href=http://localhost:${process.env.PORT}/user/verify/${this.token}>Verify</a>`,
         name: "Zankalon Market Place",
       });
     } catch (err) {

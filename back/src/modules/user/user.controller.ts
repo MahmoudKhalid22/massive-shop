@@ -21,8 +21,18 @@ export class UserController {
     }
   );
 
+  private verifyEmail = errorHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      await this.service.verifyEmail(req.params.token);
+      res.send({
+        message: "Congratulations! Your Account has been verified",
+      });
+    }
+  );
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
+    this.router.get("/verify/:token", this.verifyEmail.bind(this));
   }
   getRoutes() {
     return this.router;

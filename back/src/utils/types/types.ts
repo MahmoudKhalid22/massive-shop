@@ -1,3 +1,5 @@
+import { JwtPayload } from "jsonwebtoken";
+
 export interface UserType {
   firstname: string;
   lastname: string;
@@ -12,4 +14,8 @@ export interface UserType {
   OAuth: "facebook" | "google";
   //   verificationToken?: string;
   //   oAuthToken: "google" | "facebook";
+}
+
+export interface VerifyTokenPayload extends JwtPayload {
+  email: string;
 }

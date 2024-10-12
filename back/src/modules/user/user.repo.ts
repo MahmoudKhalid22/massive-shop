@@ -16,6 +16,14 @@ export class UserRepo implements UserDAO {
       throw err;
     }
   }
+
+  async verifyEmail(email: string): Promise<void> {
+    const user = await this.model.findOne({ email: email });
+    if (!user) throw new Error("user is not found");
+
+    user.verified = true;
+    await user.save();
+  }
   async getUserById(_id: String): Promise<UserType | null> {
     return null;
   }

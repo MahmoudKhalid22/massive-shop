@@ -14,6 +14,7 @@
     "@getbrevo/brevo": "^2.2.0",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/mongoose": "^5.11.97",
     "@types/validator": "^13.12.2",
     "@types/yup": "^0.32.0",
