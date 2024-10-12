@@ -5,7 +5,7 @@ export interface UserType {
   lastname: string;
   email: string;
   password: string;
-  confirmPassword: string | null;
+  confirmPassword?: string | null;
   verified: boolean;
   role: "admin" | "customer-service" | "vendor" | "user";
   address: string;

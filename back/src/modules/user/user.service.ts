@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { UserDAO } from "../../utils/types/DAO";
 import { UserRepoType } from "./user.repo";
 import { UserType, VerifyTokenPayload } from "../../utils/types/types";
@@ -17,7 +16,7 @@ export class UserService implements UserDAO {
       await userSchema.validate(user);
 
       user.password = await bcrypt.hash(user.password, 8);
-      user.confirmPassword = null;
+      delete user.confirmPassword;
 
       const verifyToken = jwt.sign(
         { email: user.email },
