@@ -30,9 +30,17 @@ export class UserController {
     }
   );
 
+  private loginUser = errorHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const user = await this.service.loginUser(req.body);
+      res.send(user);
+    }
+  );
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
+    this.router.post("/login", this.loginUser.bind(this));
   }
   getRoutes() {
     return this.router;

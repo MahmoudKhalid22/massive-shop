@@ -51,6 +51,14 @@ export class UserService implements UserDAO {
     }
   }
 
+  async loginUser(user: { email: string; password: string }): Promise<any> {
+    if (!user.email || !user.password) {
+      throw new Error("please provide all details");
+    }
+    const loggedUser = await this.service.loginUser(user);
+    return loggedUser;
+  }
+
   async getUserById(_id: String): Promise<UserType | null> {
     return null;
   }
