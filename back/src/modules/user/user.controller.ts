@@ -1,9 +1,10 @@
 import { Request, Response, Router } from "express";
 import { UserDAO } from "../../utils/types/DAO";
 import { UserService } from "./user.service";
-import { UserType } from "../../utils/types/types";
+import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
 import { NextFunction } from "express-serve-static-core";
+import authentication from "./middleware";
 
 export class UserController {
   private router = Router();
@@ -47,10 +48,17 @@ export class UserController {
     }
   );
 
+  private getUser = errorHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      res.send(req.user);
+    }
+  );
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
+    this.router.get("/me", authentication, this.getUser.bind(this));
   }
   getRoutes() {
     return this.router;

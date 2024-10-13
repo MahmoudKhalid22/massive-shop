@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
 export interface UserType {
@@ -18,4 +19,9 @@ export interface UserType {
 
 export interface VerifyTokenPayload extends JwtPayload {
   email: string;
+}
+
+export interface AuthRequest extends Request {
+  user: any;
+  accessToken: string;
 }

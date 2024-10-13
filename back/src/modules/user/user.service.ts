@@ -55,6 +55,24 @@ export class UserService implements UserDAO {
       throw new Error("please provide all details");
     }
     const loggedUser = await this.service.loginUser(user);
+    const accessToken = jwt.sign(
+      { _id: loggedUser._id },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
+      }
+    );
+    const refreshToken = jwt.sign(
+      { _id: loggedUser._id },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
+      }
+    );
+
+    loggedUser._doc.accessToken = accessToken;
+    loggedUser._doc.refreshToken = refreshToken;
+
     return loggedUser;
   }
 
