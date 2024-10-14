@@ -97,4 +97,8 @@ export class UserService implements UserDAO {
 
     await this.service.updateUser(user, updatedValues);
   }
+
+  async deleteAccount(id: string): Promise<void> {
+    await this.service.deleteAccount(id);
+  }
 }

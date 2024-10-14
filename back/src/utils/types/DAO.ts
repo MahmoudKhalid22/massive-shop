@@ -5,4 +5,5 @@ export interface UserDAO {
   verifyEmail(token: string): Promise<void>;
   loginUser(user: { email: string; password: string }): Promise<UserType>;
   updateUser(user: UserType, udpatedValues: any): Promise<void>;
+  deleteAccount(id: string): Promise<void>;
 }

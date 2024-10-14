@@ -3,7 +3,7 @@
 
 -----------
 2- features
-	1) update account information
+	1) update account information ( completed )
 	2) delete account 
 	3) enable 2FA
 	4) enable OTP

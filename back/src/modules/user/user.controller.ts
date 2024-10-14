@@ -60,6 +60,13 @@ export class UserController {
     res.send({ message: "User has been updated" });
   });
 
+  private deleteAccount = errorHandler(
+    async (req: AuthRequest, res: Response) => {
+      await this.service.deleteAccount(req.user?._id);
+      res.send({ message: "Account has been deleted" });
+    }
+  );
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
@@ -74,6 +81,11 @@ export class UserController {
       "/update-info",
       authentication,
       this.updateInfo.bind(this)
+    );
+    this.router.delete(
+      "/delete-account",
+      authentication,
+      this.deleteAccount.bind(this)
     );
   }
   getRoutes() {

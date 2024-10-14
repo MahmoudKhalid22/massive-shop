@@ -46,6 +46,10 @@ export class UserRepo implements UserDAO {
     Object.assign(user, updatedValues);
     await user.save();
   }
+
+  async deleteAccount(id: string): Promise<void> {
+    await this.model.findByIdAndDelete(id);
+  }
 }
 
 type UserRepoType = UserRepo;
