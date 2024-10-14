@@ -64,7 +64,7 @@ export class UserService implements UserDAO {
     );
     const refreshToken = jwt.sign(
       { _id: loggedUser._id },
-      process.env.JWT_SECRET as string,
+      process.env.JWT_SECRET_REFRESH as string,
       {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
       }
@@ -74,9 +74,5 @@ export class UserService implements UserDAO {
     loggedUser._doc.refreshToken = refreshToken;
 
     return loggedUser;
-  }
-
-  async getUserById(_id: String): Promise<UserType | null> {
-    return null;
   }
 }

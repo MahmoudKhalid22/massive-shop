@@ -4,7 +4,7 @@ import { UserService } from "./user.service";
 import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
 import { NextFunction } from "express-serve-static-core";
-import authentication from "./middleware";
+import { authentication, authRefreshToken } from "./middleware";
 
 export class UserController {
   private router = Router();
@@ -54,11 +54,22 @@ export class UserController {
     }
   );
 
+  private refreshToken = errorHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      res.send({ accessToken: req.accessToken });
+    }
+  );
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
     this.router.get("/me", authentication, this.getUser.bind(this));
+    this.router.get(
+      "/refresh-token",
+      authRefreshToken,
+      this.refreshToken.bind(this)
+    );
   }
   getRoutes() {
     return this.router;

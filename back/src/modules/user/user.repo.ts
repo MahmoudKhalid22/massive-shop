@@ -41,9 +41,6 @@ export class UserRepo implements UserDAO {
       throw err;
     }
   }
-  async getUserById(_id: String): Promise<UserType | null> {
-    return null;
-  }
 }
 
 type UserRepoType = UserRepo;
