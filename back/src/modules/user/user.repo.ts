@@ -41,6 +41,11 @@ export class UserRepo implements UserDAO {
       throw err;
     }
   }
+
+  async updateUser(user: any, updatedValues: any): Promise<void> {
+    Object.assign(user, updatedValues);
+    await user.save();
+  }
 }
 
 type UserRepoType = UserRepo;

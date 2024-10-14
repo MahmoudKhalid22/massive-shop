@@ -12,53 +12,53 @@ export class UserController {
   constructor(service: UserService) {
     this.service = service;
   }
-  private createUser = errorHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-      if (
-        !req.body.email ||
-        !req.body.password ||
-        !req.body.firstname ||
-        !req.body.lastname
-      )
-        throw new Error("please provide registiration details");
+  private createUser = errorHandler(async (req: Request, res: Response) => {
+    if (
+      !req.body.email ||
+      !req.body.password ||
+      !req.body.firstname ||
+      !req.body.lastname
+    )
+      throw new Error("please provide registiration details");
 
-      await this.service.createUser(req.body);
-      res.send({
-        message:
-          "Email has been sent to you, please check your inbox email to verify your account",
-      });
-    }
-  );
+    await this.service.createUser(req.body);
+    res.send({
+      message:
+        "Email has been sent to you, please check your inbox email to verify your account",
+    });
+  });
 
-  private verifyEmail = errorHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-      await this.service.verifyEmail(req.params.token);
-      res.send({
-        message: "Congratulations! Your Account has been verified",
-      });
-    }
-  );
+  private verifyEmail = errorHandler(async (req: Request, res: Response) => {
+    await this.service.verifyEmail(req.params.token);
+    res.send({
+      message: "Congratulations! Your Account has been verified",
+    });
+  });
 
-  private loginUser = errorHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-      if (!req.body.email || !req.body.password)
-        throw new Error("please provide email and password");
-      const user = await this.service.loginUser(req.body);
-      res.send(user);
-    }
-  );
+  private loginUser = errorHandler(async (req: Request, res: Response) => {
+    if (!req.body.email || !req.body.password)
+      throw new Error("please provide email and password");
+    const user = await this.service.loginUser(req.body);
+    res.send(user);
+  });
 
-  private getUser = errorHandler(
-    async (req: AuthRequest, res: Response, next: NextFunction) => {
-      res.send(req.user);
-    }
-  );
+  private getUser = errorHandler(async (req: AuthRequest, res: Response) => {
+    res.send(req.user);
+  });
 
   private refreshToken = errorHandler(
-    async (req: AuthRequest, res: Response, next: NextFunction) => {
+    async (req: AuthRequest, res: Response) => {
       res.send({ accessToken: req.accessToken });
     }
   );
+
+  private updateInfo = errorHandler(async (req: AuthRequest, res: Response) => {
+    await this.service.updateUser(req.user, req.body);
+
+    if (Object.keys(req.body).length === 0)
+      throw new Error("Enter the fields to update");
+    res.send({ message: "User has been updated" });
+  });
 
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
@@ -69,6 +69,11 @@ export class UserController {
       "/refresh-token",
       authRefreshToken,
       this.refreshToken.bind(this)
+    );
+    this.router.patch(
+      "/update-info",
+      authentication,
+      this.updateInfo.bind(this)
     );
   }
   getRoutes() {

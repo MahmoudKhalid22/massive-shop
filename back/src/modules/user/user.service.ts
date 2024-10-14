@@ -75,4 +75,26 @@ export class UserService implements UserDAO {
 
     return loggedUser;
   }
+
+  async updateUser(user: any, updatedValues: any): Promise<void> {
+    if (Object.keys(updatedValues).length === 0)
+      throw new Error("Please enter fields to update");
+
+    const validValues = Object.keys(user._doc);
+    let updatedValuesArr = Object.keys(updatedValues);
+    updatedValuesArr = [...new Set(updatedValuesArr)];
+
+    const isValidUpdate = updatedValuesArr.every((key) =>
+      validValues.includes(key)
+    );
+    console.log(validValues, updatedValuesArr);
+
+    if (!isValidUpdate) {
+      throw new Error(
+        "Invalid fields in the update request! you can only update firstname, lastname and address"
+      );
+    }
+
+    await this.service.updateUser(user, updatedValues);
+  }
 }

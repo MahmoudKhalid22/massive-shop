@@ -11,7 +11,9 @@
 	6) upload avatar
 	7) deal with hosting provider for images and files like cloudinary
 	8) refreshToken to get new accessToken ( completed )
-	9) 
+	9) update password
+	10) forget password
+	11) set new password
 
 	
 

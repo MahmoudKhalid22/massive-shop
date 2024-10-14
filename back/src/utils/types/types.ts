@@ -2,6 +2,7 @@ import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
 export interface UserType {
+  _id?: string;
   firstname: string;
   lastname: string;
   email: string;
