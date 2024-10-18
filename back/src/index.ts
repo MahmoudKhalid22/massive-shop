@@ -21,5 +21,6 @@ app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  dbConnection();
+  // dbConnection();
 });
+export default app;

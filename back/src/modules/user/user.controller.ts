@@ -22,7 +22,7 @@ export class UserController {
       throw new Error("please provide registiration details");
 
     await this.service.createUser(req.body);
-    res.send({
+    res.status(201).send({
       message:
         "Email has been sent to you, please check your inbox email to verify your account",
     });

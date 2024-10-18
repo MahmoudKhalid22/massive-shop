@@ -29,7 +29,12 @@ export class UserService implements UserDAO {
         user.firstname + " " + user.lastname,
         verifyToken
       );
-      await emailToSend.sendEmail();
+      try {
+
+        await emailToSend.sendEmail();
+      } catch (error) {
+        console.log("error", error);
+      }
 
       await this.service.createUser(user);
     } catch (err) {
