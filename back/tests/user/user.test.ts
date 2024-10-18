@@ -1,5 +1,3 @@
-
-
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
@@ -17,13 +15,14 @@ beforeAll(async () => {
 afterAll(async () => {
   await mongoose.disconnect();
   await mongoServer.stop();
+  app.close();
 });
 
 afterEach(async () => {
   await User.deleteMany({});
 });
 
-describe('User API Integration Tests', () => {
+describe('create user ', () => {
   it('should create a user', async () => {
     const response = await request(app).post('/user').send({
       email: 'john@example.com',
@@ -32,7 +31,7 @@ describe('User API Integration Tests', () => {
       firstname: 'John',
       lastname: 'Doe',
     });
-    // console.log(response.body);
+    console.log(response.body);
 
     expect(response.status).toBe(201);
 

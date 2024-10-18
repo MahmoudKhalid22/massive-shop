@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "dev": "nodemon ./src/index.ts",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "author": "Mahmoud Khalid",
   "license": "ISC",
