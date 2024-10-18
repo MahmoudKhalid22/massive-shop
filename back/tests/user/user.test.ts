@@ -32,11 +32,10 @@ describe('User API Integration Tests', () => {
       firstname: 'John',
       lastname: 'Doe',
     });
-    console.log(response.body);
+    // console.log(response.body);
 
     expect(response.status).toBe(201);
-    // expect(response.body).toHaveProperty('_id');
-    // expect(response.body.email).toBe('john@example.com');
+
   });
 
   it(' email not valid ', async () => {
@@ -47,23 +46,24 @@ describe('User API Integration Tests', () => {
       firstname: 'John',
       lastname: 'Doe',
     });
-    console.log(response.body);
 
-    expect(response.status).toBe(201);
-    // expect(response.body).toHaveProperty('_id');
-    // expect(response.body.email).toBe('john@example.com');
+    expect(response.status).toBe(400);
+
   });
 
-  // it('should get all users', async () => {
-  //   // Insert a user for testing
-  //   const user = new User({ name: 'Jane Doe', email: 'jane@example.com' });
-  //   await user.save();
-  //
-  //   const response = await request(app).get('/api/users');
-  //   expect(response.status).toBe(200);
-  //   expect(response.body.length).toBe(1);
-  //   expect(response.body[0].name).toBe('Jane Doe');
-  //   expect(response.body[0].email).toBe('jane@example.com');
-  // });
+  it('firstname is required', async () => {
+    const response = await request(app).post('/user').send({
+      email: 'john',
+      password: 'password123',
+      confirmPassword: 'password123',
+      lastname: 'Doe',
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors.firstname[0]).toBe('firstname is a required field');
+
+  });
+
+
 });
 

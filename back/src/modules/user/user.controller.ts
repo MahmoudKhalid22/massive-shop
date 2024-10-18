@@ -5,6 +5,9 @@ import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
 import { NextFunction } from "express-serve-static-core";
 import { authentication, authRefreshToken } from "./middleware";
+import { userSchema } from './user.validation'; // Adjust import based on your structure
+
+import { formatValidationErrors } from '../../utils/errorFormatter'; // Adjust import based on your structure
 
 export class UserController {
   private router = Router();
@@ -13,13 +16,13 @@ export class UserController {
     this.service = service;
   }
   private createUser = errorHandler(async (req: Request, res: Response) => {
-    if (
-      !req.body.email ||
-      !req.body.password ||
-      !req.body.firstname ||
-      !req.body.lastname
-    )
-      throw new Error("please provide registiration details");
+    try {
+      await userSchema.validate(req.body, { abortEarly: false });
+    } catch (err: any) {
+      const formattedErrors = formatValidationErrors(err);
+      return res.status(400).json({ errors: formattedErrors });
+
+    }
 
     await this.service.createUser(req.body);
     res.status(201).send({
