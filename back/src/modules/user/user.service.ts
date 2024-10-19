@@ -98,6 +98,20 @@ export class UserService implements UserDAO {
     await this.service.updateUser(user, updatedValues);
   }
 
+  async updatePassword(
+    user: UserType,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) throw new Error("old password is wrong");
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 8);
+
+    await this.service.updatePassword(user, hashedNewPassword);
+  }
+
   async deleteAccount(id: string): Promise<void> {
     await this.service.deleteAccount(id);
   }

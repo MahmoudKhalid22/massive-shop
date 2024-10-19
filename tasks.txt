@@ -1,19 +1,19 @@
-1- fix 
+1- fix completed
 1) fix nodemon problem
 
 -----------
 2- features
 	1) update account information ( completed )
-	2) delete account 
-	3) enable 2FA
-	4) enable OTP
+	2) delete account ( completed )
+	3) enable 2FA 
+	4) enable OTP 
 	5) enable OAUTH2 (Google and facebook and apple)
-	6) upload avatar
-	7) deal with hosting provider for images and files like cloudinary
+	6) upload avatar 
+	7) deal with hosting provider for images and files like cloudinary 
 	8) refreshToken to get new accessToken ( completed )
-	9) update password
-	10) forget password
-	11) set new password
+	9) update password ( completed )
+	10) forget password (  )
+	11) set new password (  )
 
 	
 

@@ -50,6 +50,11 @@ export class UserRepo implements UserDAO {
   async deleteAccount(id: string): Promise<void> {
     await this.model.findByIdAndDelete(id);
   }
+
+  async updatePassword(user: any, newPassword: string): Promise<void> {
+    user.password = newPassword;
+    await user.save();
+  }
 }
 
 type UserRepoType = UserRepo;

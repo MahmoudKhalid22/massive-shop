@@ -67,6 +67,24 @@ export class UserController {
     }
   );
 
+  private updatePassword = errorHandler(
+    async (req: AuthRequest, res: Response) => {
+      if (!req.body.newPassword || !req.body.oldPassword)
+        throw new Error("Please provide old and new password");
+
+      if (req.body.newPassword === req.body.oldPassword)
+        throw new Error("password is the same");
+
+      await this.service.updatePassword(
+        req.user,
+        req.body.oldPassword,
+        req.body.newPassword
+      );
+
+      res.send({ message: "Password has been updated" });
+    }
+  );
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
@@ -86,6 +104,11 @@ export class UserController {
       "/delete-account",
       authentication,
       this.deleteAccount.bind(this)
+    );
+    this.router.put(
+      "/update-password",
+      authentication,
+      this.updatePassword.bind(this)
     );
   }
   getRoutes() {
