@@ -55,6 +55,23 @@ export class UserRepo implements UserDAO {
     user.password = newPassword;
     await user.save();
   }
+  async forgetPassword(email: string): Promise<void | any> {
+    const user = await this.model.findOne({ email });
+    if (!user) throw new Error("user is not found");
+    // console.log(user);
+    return user;
+  }
+
+  async resetPassword(
+    email: string,
+    token: string,
+    newPassword: string
+  ): Promise<void> {
+    const user = await this.model.findOne({ email });
+    if (!user) throw new Error("user is not found");
+    user.password = newPassword;
+    await user.save();
+  }
 }
 
 type UserRepoType = UserRepo;

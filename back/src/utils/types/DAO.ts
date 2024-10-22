@@ -11,4 +11,10 @@ export interface UserDAO {
     oldPassword?: string,
     newPassword?: string
   ): Promise<void>;
+  forgetPassword(email: string): Promise<void | any>;
+  resetPassword(
+    email?: string,
+    token?: string,
+    newPassword?: string
+  ): Promise<void>;
 }

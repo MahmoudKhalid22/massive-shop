@@ -30,7 +30,6 @@ export class UserService implements UserDAO {
         verifyToken
       );
       try {
-
         await emailToSend.sendEmail();
       } catch (error) {
         console.log("error", error);
@@ -119,5 +118,42 @@ export class UserService implements UserDAO {
 
   async deleteAccount(id: string): Promise<void> {
     await this.service.deleteAccount(id);
+  }
+
+  async forgetPassword(email: string): Promise<void> {
+    const resetPasswordToken = jwt.sign(
+      { email: email },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: "15m",
+      }
+    );
+
+    const user = await this.service.forgetPassword(email);
+
+    const emailToSend = new EmailService(
+      user.email,
+      user.firstname + " " + user.lastname,
+      resetPasswordToken,
+      true
+    );
+
+    await emailToSend.sendEmail();
+  }
+
+  async resetPassword(
+    e: string,
+    token: string,
+    newPassword: string
+  ): Promise<void> {
+    const user: { email: string } = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as { email: string };
+    if (!user) throw new Error("token has been expired! try again");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    const email = user?.email;
+    await this.service.resetPassword(email, "", hashedPassword);
   }
 }

@@ -5,9 +5,9 @@ import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
 import { NextFunction } from "express-serve-static-core";
 import { authentication, authRefreshToken } from "./middleware";
-import { userSchema } from './user.validation'; // Adjust import based on your structure
+import { userSchema } from "./user.validation"; // Adjust import based on your structure
 
-import { formatValidationErrors } from '../../utils/errorFormatter'; // Adjust import based on your structure
+import { formatValidationErrors } from "../../utils/errorFormatter"; // Adjust import based on your structure
 
 export class UserController {
   private router = Router();
@@ -21,7 +21,6 @@ export class UserController {
     } catch (err: any) {
       const formattedErrors = formatValidationErrors(err);
       return res.status(400).json({ errors: formattedErrors });
-
     }
 
     await this.service.createUser(req.body);
@@ -88,6 +87,24 @@ export class UserController {
     }
   );
 
+  private forgetPassword = errorHandler(async (req: Request, res: Response) => {
+    const email = req.body.email;
+    if (!email) throw new Error("please provide your email");
+    await this.service.forgetPassword(email);
+    res.send({
+      message:
+        "email has been sent to you to reset your password, please check your inbox",
+    });
+  });
+
+  private resetPassword = errorHandler(async (req: Request, res: Response) => {
+    const token = req.params.token;
+    const newPassword = req.body.newPassword;
+    if (!newPassword) throw new Error("Provide the new password");
+    await this.service.resetPassword("", token, newPassword);
+    res.send({ messag: "password has been updated" });
+  });
+
   initRoutes() {
     this.router.post("/", this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
@@ -113,6 +130,8 @@ export class UserController {
       authentication,
       this.updatePassword.bind(this)
     );
+    this.router.post("/forget-password", this.forgetPassword.bind(this));
+    this.router.post("/reset-password/:token", this.resetPassword.bind(this));
   }
   getRoutes() {
     return this.router;
