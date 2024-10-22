@@ -11,6 +11,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ${{ vars.JWT_SECRET }}
+      EXPIRES_IN_TOKEN: ${{ vars.EXPIRES_IN_TOKEN }}
 
     steps:
       - name: Checkout code
