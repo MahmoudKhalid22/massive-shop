@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { errorHandler } from "../../utils/helper";
-import User from "./user.model";
-import { AuthRequest } from "../../utils/types/types";
+import { errorHandler } from "../../../utils/helper";
+import User from "./../user.model";
+import { AuthRequest } from "../../../utils/types/types";
 
 // const authentication = errorHandler(
 //   async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -50,7 +50,7 @@ import { AuthRequest } from "../../utils/types/types";
 const authenticateToken = (
   tokenType: "access" | "refresh",
   secretKey: string,
-  handlePostAuth?: (user: any) => Promise<string>
+  handlePostAuth?: (user: any) => Promise<string>,
 ) =>
   errorHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -82,7 +82,7 @@ const authenticateToken = (
 
 const authentication = authenticateToken(
   "access",
-  process.env.JWT_SECRET as string
+  process.env.JWT_SECRET as string,
 );
 
 const authRefreshToken = authenticateToken(
@@ -92,7 +92,7 @@ const authRefreshToken = authenticateToken(
     return jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
     });
-  }
+  },
 );
 
 export { authentication, authRefreshToken };
