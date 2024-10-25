@@ -4,10 +4,11 @@ import { UserService } from "./user.service";
 import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
 import { NextFunction } from "express-serve-static-core";
-import { authentication, authRefreshToken } from "./middleware";
-import { userSchema } from "./user.validation"; // Adjust import based on your structure
+import { authentication, authRefreshToken } from "./middlewares/middleware";
+import { userSchema, updatePasswordSchema } from "./user.validation"; // Adjust import based on your structure
 
 import { formatValidationErrors } from "../../utils/errorFormatter"; // Adjust import based on your structure
+import { validate } from "./middlewares/validation.middleware";
 
 export class UserController {
   private router = Router();
@@ -16,13 +17,6 @@ export class UserController {
     this.service = service;
   }
   private createUser = errorHandler(async (req: Request, res: Response) => {
-    try {
-      await userSchema.validate(req.body, { abortEarly: false });
-    } catch (err: any) {
-      const formattedErrors = formatValidationErrors(err);
-      return res.status(400).json({ errors: formattedErrors });
-    }
-
     await this.service.createUser(req.body);
     res.status(201).send({
       message:
@@ -51,7 +45,7 @@ export class UserController {
   private refreshToken = errorHandler(
     async (req: AuthRequest, res: Response) => {
       res.send({ accessToken: req.accessToken });
-    }
+    },
   );
 
   private updateInfo = errorHandler(async (req: AuthRequest, res: Response) => {
@@ -66,25 +60,19 @@ export class UserController {
     async (req: AuthRequest, res: Response) => {
       await this.service.deleteAccount(req.user?._id);
       res.send({ message: "Account has been deleted" });
-    }
+    },
   );
 
   private updatePassword = errorHandler(
     async (req: AuthRequest, res: Response) => {
-      if (!req.body.newPassword || !req.body.oldPassword)
-        throw new Error("Please provide old and new password");
-
-      if (req.body.newPassword === req.body.oldPassword)
-        throw new Error("password is the same");
-
       await this.service.updatePassword(
         req.user,
         req.body.oldPassword,
-        req.body.newPassword
+        req.body.newPassword,
       );
 
       res.send({ message: "Password has been updated" });
-    }
+    },
   );
 
   private forgetPassword = errorHandler(async (req: Request, res: Response) => {
@@ -106,29 +94,30 @@ export class UserController {
   });
 
   initRoutes() {
-    this.router.post("/", this.createUser.bind(this));
+    this.router.post("/", validate(userSchema), this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
     this.router.get("/me", authentication, this.getUser.bind(this));
     this.router.get(
       "/refresh-token",
       authRefreshToken,
-      this.refreshToken.bind(this)
+      this.refreshToken.bind(this),
     );
     this.router.patch(
       "/update-info",
       authentication,
-      this.updateInfo.bind(this)
+      this.updateInfo.bind(this),
     );
     this.router.delete(
       "/delete-account",
       authentication,
-      this.deleteAccount.bind(this)
+      this.deleteAccount.bind(this),
     );
     this.router.put(
       "/update-password",
       authentication,
-      this.updatePassword.bind(this)
+      validate(updatePasswordSchema),
+      this.updatePassword.bind(this),
     );
     this.router.post("/forget-password", this.forgetPassword.bind(this));
     this.router.post("/reset-password/:token", this.resetPassword.bind(this));
