@@ -7,13 +7,13 @@
 	2) delete account ( completed )
 	3) enable 2FA 
 	4) enable OTP 
-	5) enable OAUTH2 (Google and facebook and apple)
+	5) enable OAUTH2 (Google and facebook and apple) 
 	6) upload avatar 
 	7) deal with hosting provider for images and files like cloudinary 
 	8) refreshToken to get new accessToken ( completed )
 	9) update password ( completed )
-	10) forget password (  )
-	11) set new password (  )
+	10) forget password ( completed )
+	11) set new password ( completed )
 
 	
 
