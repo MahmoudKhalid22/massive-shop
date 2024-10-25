@@ -1,5 +1,5 @@
 import { object, string, number, date, InferType } from "yup";
-import User from "./user.model";
+import User from "../user.model";
 
 const checkEmailUnique = async (email: string) => {
   const user = await User.findOne({ email: email });
@@ -50,4 +50,5 @@ export const updatePasswordSchema = object({
         return value !== oldPassword; // Ensure new password is different from old password
       },
     ),
+  verifyWay: string().required().oneOf(["gmail", "whatsapp"]),
 });

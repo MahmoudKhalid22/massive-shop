@@ -14,7 +14,13 @@ export interface UserType {
   avatar: string;
   otp: string;
   OAuth: "facebook" | "google";
+  twoFAEnabled: boolean;
+  verifyWay: "gmail" | "whatsapp";
+  twoFAWay: "gmail" | "whatsapp";
+  twoFAToken: string;
+  userNumber: string;
   //   verificationToken?: string;
+
   //   oAuthToken: "google" | "facebook";
 }
 

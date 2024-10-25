@@ -28,6 +28,19 @@ const userSchema = new mongoose.Schema<UserType>(
       type: String,
       minlength: 6,
     },
+
+    verifyWay: {
+      type: String,
+      enum: ["gmail", "whatsapp"],
+      required: true,
+      default: "gmail",
+    },
+    userNumber: {
+      type: String,
+      required: function () {
+        return this.verifyWay === "whatsapp";
+      },
+    },
     verified: {
       type: Boolean,
       default: false,
@@ -49,6 +62,20 @@ const userSchema = new mongoose.Schema<UserType>(
     OAuth: {
       type: String,
       enum: ["google", "facebook"],
+    },
+    twoFAEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFAWay: {
+      type: String,
+      enum: ["gmail", "whatsapp"],
+      required: function () {
+        return this.twoFAEnabled;
+      },
+    },
+    twoFAToken: {
+      type: String,
     },
   },
   {
