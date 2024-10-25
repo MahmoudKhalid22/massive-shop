@@ -30,7 +30,13 @@ export class UserController {
   private loginUser = errorHandler(async (req: Request, res: Response) => {
     if (!req.body.email || !req.body.password)
       throw new Error("please provide email and password");
+
     const user = await this.controller.loginUser(req.body);
+    res.send(user);
+  });
+
+  private loginTwoFA = errorHandler(async (req: Request, res: Response) => {
+    const user = await this.controller.loginTwoFA(req.params.token);
     res.send(user);
   });
 
@@ -89,10 +95,43 @@ export class UserController {
     res.send({ messag: "password has been updated" });
   });
 
+  private enableTwoFA = errorHandler(
+    async (req: AuthRequest, res: Response) => {
+      const registerWay = req.body.registerWay;
+      const registerDetails = req.body.registerDetails;
+      if (!registerWay || !registerDetails)
+        throw new Error("please provide register way and register details");
+
+      await this.controller.enableTwoFA(req.user, registerWay, registerDetails);
+      if (registerWay === "gmail") {
+        res.send({
+          message:
+            "email has been sent to you, please check your inbox to verify 2fa",
+        });
+        return;
+      }
+      if (registerWay === "whatsapp") {
+        res.send({
+          message:
+            "please check your inbox to verify 2fa and provide code sent to you via whatsapp",
+        });
+        return;
+      }
+    }
+  );
+
+  private verifyTwoFA = errorHandler(async (req: Request, res: Response) => {
+    await this.controller.verifyTwoFA(req.params.token);
+    res.send({
+      message: "Congratulations! Your Account has been verified",
+    });
+  });
+
   initRoutes() {
     this.router.post("/", validate(userSchema), this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
+    this.router.post("/login-2fa", this.loginTwoFA.bind(this));
     this.router.get("/me", authentication, this.getUser.bind(this));
     this.router.get(
       "/refresh-token",
@@ -117,6 +156,12 @@ export class UserController {
     );
     this.router.post("/forget-password", this.forgetPassword.bind(this));
     this.router.post("/reset-password/:token", this.resetPassword.bind(this));
+    this.router.post(
+      "/enable-2FA",
+      authentication,
+      this.enableTwoFA.bind(this)
+    );
+    this.router.get("/verify-2fa/:token", this.verifyTwoFA.bind(this));
   }
   getRoutes() {
     return this.router;

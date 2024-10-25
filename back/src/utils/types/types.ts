@@ -15,7 +15,7 @@ export interface UserType {
   otp: string;
   OAuth: "facebook" | "google";
   twoFAEnabled: boolean;
-  verifyWay: "gmail" | "whatsapp";
+  registerWay: "gmail" | "whatsapp";
   twoFAWay: "gmail" | "whatsapp";
   twoFAToken: string;
   userNumber: string;
