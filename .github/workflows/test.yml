@@ -12,6 +12,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      JWT_SECRET: ${{ vars.JWT_SECRET }}
+      EXPIRES_IN_TOKEN: ${{ vars.EXPIRES_IN_TOKEN }}
+      PORT: ${{ vars.PORT }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
