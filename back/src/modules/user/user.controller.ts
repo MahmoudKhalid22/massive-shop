@@ -2,10 +2,9 @@ import { Request, Response, Router } from "express";
 import { UserService } from "./user.service";
 import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
-import { authentication, authRefreshToken } from "./middleware";
-import { userSchema } from "./utils/user.validation"; // Adjust import based on your structure
-
-import { formatValidationErrors } from "../../utils/errorFormatter"; // Adjust import based on your structure
+import { authentication, authRefreshToken } from "./middlewares/middleware";
+import { userSchema, updatePasswordSchema } from "./utils/user.validation"; // Adjust import based on your structure
+import { validate } from "./middlewares/validation.middleware";
 
 export class UserController {
   private router = Router();
@@ -14,13 +13,6 @@ export class UserController {
     this.controller = controller;
   }
   private createUser = errorHandler(async (req: Request, res: Response) => {
-    // try {
-    await userSchema.validate(req.body, { abortEarly: false });
-    // } catch (err: any) {
-    // const formattedErrors = formatValidationErrors(err);
-    // return res.status(400).json({ errors: formattedErrors });
-    // }
-
     await this.controller.createUser(req.body);
     res.status(201).send({
       message:
@@ -69,12 +61,6 @@ export class UserController {
 
   private updatePassword = errorHandler(
     async (req: AuthRequest, res: Response) => {
-      if (!req.body.newPassword || !req.body.oldPassword)
-        throw new Error("Please provide old and new password");
-
-      if (req.body.newPassword === req.body.oldPassword)
-        throw new Error("password is the same");
-
       await this.controller.updatePassword(
         req.user,
         req.body.oldPassword,
@@ -104,7 +90,7 @@ export class UserController {
   });
 
   initRoutes() {
-    this.router.post("/", this.createUser.bind(this));
+    this.router.post("/", validate(userSchema), this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
     this.router.get("/me", authentication, this.getUser.bind(this));
@@ -126,6 +112,7 @@ export class UserController {
     this.router.put(
       "/update-password",
       authentication,
+      validate(updatePasswordSchema),
       this.updatePassword.bind(this)
     );
     this.router.post("/forget-password", this.forgetPassword.bind(this));

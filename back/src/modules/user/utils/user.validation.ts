@@ -20,7 +20,7 @@ export const userSchema = object({
         if (!value) return true;
         const isUnique = await checkEmailUnique(value);
         return isUnique;
-      }
+      },
     ),
   password: string().required().min(6),
   confirmPassword: string()
@@ -32,7 +32,23 @@ export const userSchema = object({
       function (value: string) {
         if (!value) return true;
         return value === this.parent.password;
-      }
+      },
+    ),
+});
+
+export const updatePasswordSchema = object({
+  oldPassword: string().required("Old password is required"),
+  newPassword: string()
+    .min(6, "New password must be at least 6 characters")
+    .required("New password is required")
+    .test(
+      "not-same-as-old",
+      "New password cannot be the same as the old password",
+      function (value) {
+        // Access the old password from the parent context
+        const { oldPassword } = this.parent;
+        return value !== oldPassword; // Ensure new password is different from old password
+      },
     ),
   verifyWay: string().required().oneOf(["gmail", "whatsapp"]),
 });
