@@ -3,9 +3,11 @@ import jwt from "jsonwebtoken";
 import { UserDAO } from "../../utils/types/DAO";
 import { UserRepoType } from "./user.repo";
 import { UserType, VerifyTokenPayload } from "../../utils/types/types";
-import { EmailService } from "../../utils/email.service";
-import { userSchema } from "./user.validation";
+import { EmailService } from "./utils/email.service";
+import { userSchema } from "./utils/user.validation";
+import { generateOTP } from "./utils/helpers";
 import { AvatarUploader } from "../../utils/media/AvatarUploader";
+
 export class UserService implements UserDAO {
   private service: UserRepoType;
   constructor(service: UserRepoType) {
@@ -18,25 +20,31 @@ export class UserService implements UserDAO {
       user.password = await bcrypt.hash(user.password, 8);
       delete user.confirmPassword;
 
-      const verifyToken = jwt.sign(
-        { email: user.email },
-        process.env.JWT_SECRET as string,
-        { expiresIn: process.env.EXPIRES_IN_TOKEN },
-      );
+      if (user.verifyWay === "gmail") {
+        const verifyToken = jwt.sign(
+          { email: user.email },
+          process.env.JWT_SECRET as string,
+          { expiresIn: process.env.EXPIRES_IN_TOKEN }
+        );
 
-      const emailToSend = new EmailService(
-        user.email,
-        user.firstname + " " + user.lastname,
-        verifyToken,
-      );
-      try {
+        const emailToSend = new EmailService(
+          user.email,
+          user.firstname + " " + user.lastname,
+          verifyToken
+        );
+        // try {
         await emailToSend.sendEmail();
-      } catch (error) {
-        console.log("error", error);
+        // } catch (error) {
+        // console.log("error", error);
+        // }
+      }
+      if (user.verifyWay === "whatsapp") {
+        const otp = generateOTP();
+        user.otp = otp;
+        // integrate with whatsapp to send this otp
       }
 
-      // generate and upload avatar
-      try {
+         try {
         const avatarUploader = new AvatarUploader();
         const uploadResult = await avatarUploader.generateAndUploadAvatar(
           user.firstname,
@@ -45,7 +53,6 @@ export class UserService implements UserDAO {
       } catch (error) {
         console.log(error);
       }
-
       await this.service.createUser(user);
     } catch (err) {
       throw err;
