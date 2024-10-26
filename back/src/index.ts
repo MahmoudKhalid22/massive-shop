@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import dbConnection from "./config/dbConnection";
 import { combinedRoutes } from "./router";
 import { CustomError } from "./utils/helper";
+import DropboxService from "./config/DropboxService"; // Assuming the above service is in a separate file
 
 dotenv.config();
 
@@ -19,8 +20,12 @@ app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
 });
 
 const PORT = process.env.PORT || 3000;
+let dropboxService: DropboxService;
 const server = app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  if (process.env.NODE_ENV != "test") dbConnection();
+  if (process.env.NODE_ENV != "test") {
+    dbConnection();
+    dropboxService = new DropboxService();
+  }
 });
 export default server;

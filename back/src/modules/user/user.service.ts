@@ -5,7 +5,7 @@ import { UserRepoType } from "./user.repo";
 import { UserType, VerifyTokenPayload } from "../../utils/types/types";
 import { EmailService } from "../../utils/email.service";
 import { userSchema } from "./user.validation";
-
+import { AvatarUploader } from "../../utils/media/AvatarUploader";
 export class UserService implements UserDAO {
   private service: UserRepoType;
   constructor(service: UserRepoType) {
@@ -21,18 +21,29 @@ export class UserService implements UserDAO {
       const verifyToken = jwt.sign(
         { email: user.email },
         process.env.JWT_SECRET as string,
-        { expiresIn: process.env.EXPIRES_IN_TOKEN }
+        { expiresIn: process.env.EXPIRES_IN_TOKEN },
       );
 
       const emailToSend = new EmailService(
         user.email,
         user.firstname + " " + user.lastname,
-        verifyToken
+        verifyToken,
       );
       try {
         await emailToSend.sendEmail();
       } catch (error) {
         console.log("error", error);
+      }
+
+      // generate and upload avatar
+      try {
+        const avatarUploader = new AvatarUploader();
+        const uploadResult = await avatarUploader.generateAndUploadAvatar(
+          user.firstname,
+        );
+        user.avatar = uploadResult.shareLink;
+      } catch (error) {
+        console.log(error);
       }
 
       await this.service.createUser(user);
@@ -45,7 +56,7 @@ export class UserService implements UserDAO {
     try {
       const verified: VerifyTokenPayload = jwt.verify(
         token,
-        process.env.JWT_SECRET as string
+        process.env.JWT_SECRET as string,
       ) as VerifyTokenPayload;
 
       await this.service.verifyEmail(verified?.email);
@@ -64,14 +75,14 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
-      }
+      },
     );
     const refreshToken = jwt.sign(
       { _id: loggedUser._id },
       process.env.JWT_SECRET_REFRESH as string,
       {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
-      }
+      },
     );
 
     loggedUser._doc.accessToken = accessToken;
@@ -89,13 +100,13 @@ export class UserService implements UserDAO {
     updatedValuesArr = [...new Set(updatedValuesArr)];
 
     const isValidUpdate = updatedValuesArr.every((key) =>
-      validValues.includes(key)
+      validValues.includes(key),
     );
     console.log(validValues, updatedValuesArr);
 
     if (!isValidUpdate) {
       throw new Error(
-        "Invalid fields in the update request! you can only update firstname, lastname and address"
+        "Invalid fields in the update request! you can only update firstname, lastname and address",
       );
     }
 
@@ -105,7 +116,7 @@ export class UserService implements UserDAO {
   async updatePassword(
     user: UserType,
     oldPassword: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<void> {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
 
@@ -126,7 +137,7 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: "15m",
-      }
+      },
     );
 
     const user = await this.service.forgetPassword(email);
@@ -135,7 +146,7 @@ export class UserService implements UserDAO {
       user.email,
       user.firstname + " " + user.lastname,
       resetPasswordToken,
-      true
+      true,
     );
 
     await emailToSend.sendEmail();
@@ -144,11 +155,11 @@ export class UserService implements UserDAO {
   async resetPassword(
     e: string,
     token: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<void> {
     const user: { email: string } = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     ) as { email: string };
     if (!user) throw new Error("token has been expired! try again");
 
