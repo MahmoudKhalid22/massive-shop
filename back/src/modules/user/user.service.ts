@@ -66,7 +66,8 @@ export class UserService implements UserDAO {
       throw new Error("please provide all details");
     }
     const loggedUser = await this.service.loginUser(user);
-    if (loggedUser._doc.twoFAEnabled) {
+
+    if (loggedUser.twoFAEnabled) {
       const tokenTwoFA = jwt.sign(
         { _id: loggedUser._doc._id },
         process.env.JWT_SECRET as string,
@@ -75,10 +76,13 @@ export class UserService implements UserDAO {
       const emailToSend = new EmailService(
         loggedUser._doc.email,
         loggedUser._doc.firstname + " " + loggedUser._doc.lastname,
-        tokenTwoFA
+        tokenTwoFA,
+        false,
+        false,
+        `http://localhost:3000/user/login-2fa/${tokenTwoFA}`
       );
       await emailToSend.sendEmail();
-      return;
+      return loggedUser;
     }
     const accessToken = jwt.sign(
       { _id: loggedUser._id },
@@ -122,8 +126,8 @@ export class UserService implements UserDAO {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
       }
     );
-    user.accessToken = accessToken;
-    user.refreshToken = refreshToken;
+    user._doc.accessToken = accessToken;
+    user._doc.refreshToken = refreshToken;
     return user;
   }
 
@@ -219,7 +223,9 @@ export class UserService implements UserDAO {
       const emailToSend = new EmailService(
         user.email,
         user.firstname + " " + user.lastname,
-        token
+        token,
+        false,
+        true
       );
       await emailToSend.sendEmail();
       return;
@@ -236,6 +242,6 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET_2FA as string
     ) as VerifyTokenPayload;
 
-    await this.service.verifyTwoFA(verified?.email);
+    await this.service.verifyTwoFA(verified?.field);
   }
 }

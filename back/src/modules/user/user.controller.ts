@@ -32,7 +32,15 @@ export class UserController {
       throw new Error("please provide email and password");
 
     const user = await this.controller.loginUser(req.body);
-    res.send(user);
+    console.log(user);
+    if (!user.twoFAEnabled) {
+      res.send(user);
+      return;
+    } else {
+      res.send({
+        message: "email has been sent to you, please check your inbox to login",
+      });
+    }
   });
 
   private loginTwoFA = errorHandler(async (req: Request, res: Response) => {
@@ -122,6 +130,7 @@ export class UserController {
 
   private verifyTwoFA = errorHandler(async (req: Request, res: Response) => {
     await this.controller.verifyTwoFA(req.params.token);
+
     res.send({
       message: "Congratulations! Your Account has been verified",
     });
@@ -131,7 +140,7 @@ export class UserController {
     this.router.post("/", validate(userSchema), this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
-    this.router.post("/login-2fa", this.loginTwoFA.bind(this));
+    this.router.get("/login-2fa/:token", this.loginTwoFA.bind(this));
     this.router.get("/me", authentication, this.getUser.bind(this));
     this.router.get(
       "/refresh-token",
