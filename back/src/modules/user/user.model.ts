@@ -14,9 +14,17 @@ const userSchema = new mongoose.Schema<UserType>(
       minlength: 2,
       required: true,
     },
+    registerWay: {
+      type: String,
+      enum: ["gmail", "whatsapp"],
+      required: true,
+      default: "gmail",
+    },
     email: {
       type: String,
-      required: true,
+      required: function () {
+        return this.registerWay === "gmail";
+      },
       unique: true,
       validate: {
         validator: function (value: string) {
@@ -29,16 +37,10 @@ const userSchema = new mongoose.Schema<UserType>(
       minlength: 6,
     },
 
-    verifyWay: {
-      type: String,
-      enum: ["gmail", "whatsapp"],
-      required: true,
-      default: "gmail",
-    },
     userNumber: {
       type: String,
       required: function () {
-        return this.verifyWay === "whatsapp";
+        return this.registerWay === "whatsapp";
       },
     },
     verified: {
@@ -70,9 +72,6 @@ const userSchema = new mongoose.Schema<UserType>(
     twoFAWay: {
       type: String,
       enum: ["gmail", "whatsapp"],
-      required: function () {
-        return this.twoFAEnabled;
-      },
     },
     twoFAToken: {
       type: String,

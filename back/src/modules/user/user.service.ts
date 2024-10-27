@@ -20,7 +20,7 @@ export class UserService implements UserDAO {
       user.password = await bcrypt.hash(user.password, 8);
       delete user.confirmPassword;
 
-      if (user.verifyWay === "gmail") {
+      if (user.registerWay === "gmail") {
         const verifyToken = jwt.sign(
           { email: user.email },
           process.env.JWT_SECRET as string,
@@ -38,7 +38,7 @@ export class UserService implements UserDAO {
         // console.log("error", error);
         // }
       }
-      if (user.verifyWay === "whatsapp") {
+      if (user.registerWay === "whatsapp") {
         const otp = generateOTP();
         user.otp = otp;
         // integrate with whatsapp to send this otp
@@ -77,6 +77,24 @@ export class UserService implements UserDAO {
       throw new Error("please provide all details");
     }
     const loggedUser = await this.service.loginUser(user);
+
+    if (loggedUser.twoFAEnabled) {
+      const tokenTwoFA = jwt.sign(
+        { _id: loggedUser._doc._id },
+        process.env.JWT_SECRET as string,
+        { expiresIn: "1h" }
+      );
+      const emailToSend = new EmailService(
+        loggedUser._doc.email,
+        loggedUser._doc.firstname + " " + loggedUser._doc.lastname,
+        tokenTwoFA,
+        false,
+        false,
+        `http://localhost:3000/user/login-2fa/${tokenTwoFA}`
+      );
+      await emailToSend.sendEmail();
+      return loggedUser;
+    }
     const accessToken = jwt.sign(
       { _id: loggedUser._id },
       process.env.JWT_SECRET as string,
@@ -96,6 +114,32 @@ export class UserService implements UserDAO {
     loggedUser._doc.refreshToken = refreshToken;
 
     return loggedUser;
+  }
+
+  async loginTwoFA(token: any): Promise<any> {
+    const verifiedToken: any = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as any;
+    const user = await this.service.loginTwoFA(verifiedToken._id);
+
+    const accessToken = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
+      }
+    );
+    const refreshToken = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET_REFRESH as string,
+      {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
+      }
+    );
+    user._doc.accessToken = accessToken;
+    user._doc.refreshToken = refreshToken;
+    return user;
   }
 
   async updateUser(user: any, updatedValues: any): Promise<void> {
@@ -173,5 +217,42 @@ export class UserService implements UserDAO {
     const hashedPassword = await bcrypt.hash(newPassword, 8);
     const email = user?.email;
     await this.service.resetPassword(email, "", hashedPassword);
+  }
+
+  async enableTwoFA(
+    user: UserType,
+    registerWay: string,
+    registerDetails: string
+  ): Promise<void> {
+    if (registerWay === "gmail") {
+      const token = jwt.sign(
+        { field: registerDetails },
+        process.env.JWT_SECRET_2FA as string,
+        { expiresIn: process.env.JWT_EXPIRES_IN_SECRET }
+      );
+
+      const emailToSend = new EmailService(
+        user.email,
+        user.firstname + " " + user.lastname,
+        token,
+        false,
+        true
+      );
+      await emailToSend.sendEmail();
+      return;
+    }
+    if (registerWay === "whatsapp") {
+      const otp = generateOTP();
+      return;
+    }
+  }
+
+  async verifyTwoFA(token: string): Promise<void> {
+    const verified: VerifyTokenPayload = jwt.verify(
+      token,
+      process.env.JWT_SECRET_2FA as string
+    ) as VerifyTokenPayload;
+
+    await this.service.verifyTwoFA(verified?.field);
   }
 }
