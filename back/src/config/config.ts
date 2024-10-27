@@ -25,3 +25,19 @@ export default function dbConnection() {
     process.exit(1); // Exit the process with failure code
   }
 }
+
+export const verificationLinkLocal = (token: string) =>
+  `http://localhost:3000/user/verify/${token}`;
+export const verificationLink = "";
+
+export const resetPasswordLinkLocal = (token: string) =>
+  `http://localhost:3000/user/reset-password/${token}`;
+export const resetPasswordLink = "";
+
+export const loginTwoFALinkLocal = (token: string) =>
+  `http://localhost:3000/user/reset-password/${token}`;
+export const loginTwoFALink = "";
+
+export const verifyTwoFALinkLocal = (token: string) =>
+  `http://localhost:3000/user/reset-password/${token}`;
+export const verifyTwoFALink = "";

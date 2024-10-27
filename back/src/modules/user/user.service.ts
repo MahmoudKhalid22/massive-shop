@@ -3,9 +3,17 @@ import jwt from "jsonwebtoken";
 import { UserDAO } from "../../utils/types/DAO";
 import { UserRepoType } from "./user.repo";
 import { UserType, VerifyTokenPayload } from "../../utils/types/types";
-import { EmailService } from "./utils/email.service";
 import { userSchema } from "./utils/user.validation";
 import { generateOTP } from "./utils/helpers";
+import { VerificationEmail } from "./utils/emails/verificationEmail";
+import {
+  resetPasswordLinkLocal,
+  verificationLinkLocal,
+  verifyTwoFALinkLocal,
+} from "../../config/config";
+import { LoginTwoFA } from "./utils/emails/loginTwoFA";
+import { PasswordResetEmail } from "./utils/emails/passwordEmail";
+import { TwoFactorActivationEmail } from "./utils/emails/verifyTwoFA";
 
 export class UserService implements UserDAO {
   private service: UserRepoType;
@@ -26,10 +34,11 @@ export class UserService implements UserDAO {
           { expiresIn: process.env.EXPIRES_IN_TOKEN }
         );
 
-        const emailToSend = new EmailService(
+        const emailToSend = new VerificationEmail(
           user.email,
           user.firstname + " " + user.lastname,
-          verifyToken
+          verifyToken,
+          verificationLinkLocal(verifyToken)
         );
         // try {
         await emailToSend.sendEmail();
@@ -73,13 +82,11 @@ export class UserService implements UserDAO {
         process.env.JWT_SECRET as string,
         { expiresIn: "1h" }
       );
-      const emailToSend = new EmailService(
+      const emailToSend = new LoginTwoFA(
         loggedUser._doc.email,
         loggedUser._doc.firstname + " " + loggedUser._doc.lastname,
         tokenTwoFA,
-        false,
-        false,
-        `http://localhost:3000/user/login-2fa/${tokenTwoFA}`
+        verificationLinkLocal(tokenTwoFA)
       );
       await emailToSend.sendEmail();
       return loggedUser;
@@ -182,11 +189,11 @@ export class UserService implements UserDAO {
 
     const user = await this.service.forgetPassword(email);
 
-    const emailToSend = new EmailService(
+    const emailToSend = new PasswordResetEmail(
       user.email,
       user.firstname + " " + user.lastname,
       resetPasswordToken,
-      true
+      resetPasswordLinkLocal(resetPasswordToken)
     );
 
     await emailToSend.sendEmail();
@@ -220,12 +227,11 @@ export class UserService implements UserDAO {
         { expiresIn: process.env.JWT_EXPIRES_IN_SECRET }
       );
 
-      const emailToSend = new EmailService(
+      const emailToSend = new TwoFactorActivationEmail(
         user.email,
         user.firstname + " " + user.lastname,
         token,
-        false,
-        true
+        verifyTwoFALinkLocal(token)
       );
       await emailToSend.sendEmail();
       return;
