@@ -42,6 +42,12 @@ export class UserRepo implements UserDAO {
     }
   }
 
+  async loginTwoFA(_id: any): Promise<any> {
+    const user = this.model.findOne({ _id: _id });
+    if (!user) throw new Error("user is not found");
+    return user;
+  }
+
   async updateUser(user: any, updatedValues: any): Promise<void> {
     Object.assign(user, updatedValues);
     await user.save();
@@ -71,6 +77,20 @@ export class UserRepo implements UserDAO {
     if (!user) throw new Error("user is not found");
     user.password = newPassword;
     await user.save();
+  }
+
+  async enableTwoFA(
+    user: UserType,
+    registerWay: string,
+    registerDetails: string
+  ): Promise<void> {}
+  async verifyTwoFA(email: string): Promise<void> {
+    const user = await this.model.findOneAndUpdate(
+      { email },
+      { twoFAEnabled: true },
+      { new: true }
+    );
+    if (!user) throw new Error("user is not found");
   }
 }
 

@@ -11,17 +11,23 @@ export class EmailService {
   private apiKey = client.authentications["api-key"];
   private apiInstance: any;
   private password: boolean;
+  private twoFA: boolean;
+  private url?: string;
 
   constructor(
     reciever: string,
     recieverName: string,
     token: string,
-    password?: boolean
+    password?: boolean,
+    twoFA?: boolean,
+    url?: string
   ) {
     this.recieverEmail = reciever;
     this.recieverName = recieverName;
     this.token = token;
     this.password = password || false;
+    this.twoFA = twoFA || false;
+    this.url = url;
   }
 
   async sendEmail() {
@@ -44,7 +50,15 @@ export class EmailService {
         <a href="http://localhost:${process.env.PORT}/user/reset/${this.token}">Reset Password</a>
         <p>If you did not request this, please ignore this email or contact our support team.</p>
         <p>Thank you,<br>The Support Team</p>`
-        : `<h2>Welcome, ${this.recieverName}. You have successfully created an email</h2><p>You are in the right place. To achieve all benefit from our platform, please verify your account</p><a href=http://localhost:${process.env.PORT}/user/verify/${this.token}>Verify</a>`;
+        : `<h2>Welcome, ${
+            this.recieverName
+          }. You have successfully created an email</h2><p>You are in the right place. To achieve all benefit from our platform, please verify your account</p><a href=${
+            this.url
+              ? this.url
+              : `http://localhost:${process.env.PORT}/user/verify${
+                  this.twoFA ? "-2fa" : ""
+                }/${this.token}`
+          }>Verify</a>`;
 
       await this.apiInstance.sendTransacEmail({
         sender,
