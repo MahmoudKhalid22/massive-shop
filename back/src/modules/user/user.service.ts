@@ -14,6 +14,7 @@ import {
 import { LoginTwoFA } from "./utils/emails/loginTwoFA";
 import { PasswordResetEmail } from "./utils/emails/passwordEmail";
 import { TwoFactorActivationEmail } from "./utils/emails/verifyTwoFA";
+import { AvatarUploader } from "../../utils/media/AvatarUploader";
 
 export class UserService implements UserDAO {
   private service: UserRepoType;
@@ -40,16 +41,25 @@ export class UserService implements UserDAO {
           verifyToken,
           verificationLinkLocal(verifyToken)
         );
-        // try {
+
         await emailToSend.sendEmail();
-        // } catch (error) {
-        // console.log("error", error);
-        // }
       }
       if (user.registerWay === "whatsapp") {
         const otp = generateOTP();
         user.otp = otp;
         // integrate with whatsapp to send this otp
+      }
+
+      try {
+        const avatarUploader = new AvatarUploader();
+        const uploadResult = await avatarUploader.generateAndUploadAvatar(
+          user.firstname
+        );
+        user.avatar = uploadResult.shareLink;
+        console.log(uploadResult);
+      } catch (error) {
+        console.log("avatar error");
+        console.log(error);
       }
       await this.service.createUser(user);
     } catch (err) {

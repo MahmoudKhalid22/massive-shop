@@ -16,6 +16,11 @@ jobs:
       JWT_SECRET: ${{ vars.JWT_SECRET }}
       EXPIRES_IN_TOKEN: ${{ vars.EXPIRES_IN_TOKEN }}
       PORT: ${{ vars.PORT }}
+      NODE_ENV: ${{ vars.NODE_ENV }}
+      JWT_SECRET_REFRESH: ${{ vars.JWT_SECRET_REFRESH }}
+      ACCESS_TOKEN_EXPIRES: ${{ vars.ACCESS_TOKEN_EXPIRES }}
+      REFRESH_TOKEN_EXPIRES: ${{ vars.REFRESH_TOKEN_EXPIRES }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
