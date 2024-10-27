@@ -24,13 +24,13 @@ export class UserService implements UserDAO {
         const verifyToken = jwt.sign(
           { email: user.email },
           process.env.JWT_SECRET as string,
-          { expiresIn: process.env.EXPIRES_IN_TOKEN }
+          { expiresIn: process.env.EXPIRES_IN_TOKEN },
         );
 
         const emailToSend = new EmailService(
           user.email,
           user.firstname + " " + user.lastname,
-          verifyToken
+          verifyToken,
         );
         // try {
         await emailToSend.sendEmail();
@@ -44,13 +44,15 @@ export class UserService implements UserDAO {
         // integrate with whatsapp to send this otp
       }
 
-         try {
+      try {
         const avatarUploader = new AvatarUploader();
         const uploadResult = await avatarUploader.generateAndUploadAvatar(
           user.firstname,
         );
         user.avatar = uploadResult.shareLink;
+        console.log(uploadResult);
       } catch (error) {
+        console.log("avatar error");
         console.log(error);
       }
       await this.service.createUser(user);

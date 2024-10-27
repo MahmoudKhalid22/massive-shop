@@ -3,6 +3,12 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import request from "supertest";
 import app from "../../src/index";
 import User from "../../src/modules/user/user.model";
+import { AvatarUploader } from "../../src/utils/media/AvatarUploader";
+
+jest.mock("../../src/utils/media/AvatarUploader.ts");
+AvatarUploader.prototype.generateAndUploadAvatar = jest.fn().mockResolvedValue({
+  shareLink: "http://example.com/avatar.jpg",
+});
 
 let mongoServer: MongoMemoryServer;
 
