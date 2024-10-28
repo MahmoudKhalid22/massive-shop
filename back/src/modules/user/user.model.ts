@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema<UserType>(
     },
     address: {
       type: String,
+      default: "",
     },
     avatar: {
       type: String,
@@ -73,7 +74,7 @@ const userSchema = new mongoose.Schema<UserType>(
       type: String,
       enum: ["gmail", "whatsapp"],
     },
-    twoFAToken: {
+    twoFADetails: {
       type: String,
     },
   },

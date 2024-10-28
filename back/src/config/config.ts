@@ -35,7 +35,7 @@ export const resetPasswordLinkLocal = (token: string) =>
 export const resetPasswordLink = "";
 
 export const loginTwoFALinkLocal = (token: string) =>
-  `http://localhost:3000/user/reset-password/${token}`;
+  `http://localhost:3000/user/login-2fa/${token}`;
 export const loginTwoFALink = "";
 
 export const verifyTwoFALinkLocal = (token: string) =>

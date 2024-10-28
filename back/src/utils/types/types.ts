@@ -17,7 +17,7 @@ export interface UserType {
   twoFAEnabled: boolean;
   registerWay: "gmail" | "whatsapp";
   twoFAWay: "gmail" | "whatsapp";
-  twoFAToken: string;
+  twoFADetails: string;
   userNumber: string;
   //   verificationToken?: string;
 
