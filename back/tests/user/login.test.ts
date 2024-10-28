@@ -5,7 +5,10 @@ import app from "../../src/index";
 import User from "../../src/modules/user/user.model";
 import jwt from "jsonwebtoken";
 import e from "express";
+
+import path from "path";
 let accessToken = "";
+let userId = "";
 let mongoServer: MongoMemoryServer;
 import { AvatarUploader } from "../../src/utils/media/AvatarUploader";
 jest.mock("../../src/utils/media/AvatarUploader.ts");
@@ -13,7 +16,9 @@ jest.mock("../../src/utils/media/AvatarUploader.ts");
 AvatarUploader.prototype.generateAndUploadAvatar = jest.fn().mockResolvedValue({
   shareLink: "http://example.com/avatar.jpg",
 });
-
+AvatarUploader.prototype.uploadAvatar = jest.fn().mockResolvedValue({
+  shareLink: "http://example.com/avatar.jpg",
+});
 const newUser = {
   email: "john2@example.com",
   password: "password123",
@@ -87,5 +92,15 @@ describe("create and login", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send(changePasswordData);
     expect(response4.status).toBe(400);
+  });
+
+  it("should upload an avatar successfully", async () => {
+    const filePath = path.join(__dirname, "..", "assets", "image.png");
+
+    const response = await request(app)
+      .post(`/user/upload-avatar`)
+      .set("Authorization", `Bearer ${accessToken}`) // Mock authentication
+      .attach("avatar", filePath);
+    expect(response.status).toBe(200);
   });
 });

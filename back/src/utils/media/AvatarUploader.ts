@@ -14,14 +14,11 @@ export class AvatarUploader {
   constructor() {
     this.dbx = DropboxService.getInstance();
   }
-  public async generateAndUploadAvatar(
-    userName: string,
-    avatarOptions: AvatarOptions = {},
+  public async uploadAvatar(
+    avatarPath: string,
     uploadOptions: UploadOptions = { makePublic: true, overwrite: true },
   ): Promise<UploadResult> {
     try {
-      const avatarPath = await generateAvatar(userName, avatarOptions);
-
       try {
         const result = await this.dbx.uploadFile(
           avatarPath,
@@ -37,10 +34,25 @@ export class AvatarUploader {
         }
       }
     } catch (error: any) {
+      console.log("up**error", error);
       if (error instanceof Error) {
         throw new Error(`Avatar generation/upload failed: ${error.message}`);
       }
       throw new Error("Unknown error during avatar generation/upload");
     }
+  }
+
+  public async generateAndUploadAvatar(
+    userName: string,
+    avatarOptions: AvatarOptions = {},
+    uploadOptions: UploadOptions = { makePublic: true, overwrite: true },
+  ): Promise<UploadResult> {
+    const avatarPath = await generateAvatar(userName, avatarOptions);
+    const result = await this.dbx.uploadFile(
+      avatarPath as string,
+
+      "/avatars",
+    );
+    return result;
   }
 }

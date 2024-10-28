@@ -37,11 +37,9 @@ describe("create user ", () => {
       firstname: "John",
       lastname: "Doe",
     });
-    console.log(response.body);
 
     expect(response.status).toBe(201);
     const user = await User.findOne({ email: "john@example.com" });
-    console.log(user);
   });
 
   it(" email not valid ", async () => {

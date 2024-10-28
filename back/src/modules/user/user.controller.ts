@@ -5,6 +5,11 @@ import { errorHandler } from "../../utils/helper";
 import { authentication, authRefreshToken } from "./middlewares/middleware";
 import { userSchema, updatePasswordSchema } from "./utils/user.validation"; // Adjust import based on your structure
 import { validate } from "./middlewares/validation.middleware";
+import multer from "multer"; // For handling multipart/form-data
+
+const storage = multer.memoryStorage(); // Store files in memory (for simplicity)
+
+const upload = multer({ storage }).single("avatar");
 
 export class UserController {
   private router = Router();
@@ -55,7 +60,7 @@ export class UserController {
   private refreshToken = errorHandler(
     async (req: AuthRequest, res: Response) => {
       res.send({ accessToken: req.accessToken });
-    }
+    },
   );
 
   private updateInfo = errorHandler(async (req: AuthRequest, res: Response) => {
@@ -70,7 +75,7 @@ export class UserController {
     async (req: AuthRequest, res: Response) => {
       await this.controller.deleteAccount(req.user?._id);
       res.send({ message: "Account has been deleted" });
-    }
+    },
   );
 
   private updatePassword = errorHandler(
@@ -78,11 +83,11 @@ export class UserController {
       await this.controller.updatePassword(
         req.user,
         req.body.oldPassword,
-        req.body.newPassword
+        req.body.newPassword,
       );
 
       res.send({ message: "Password has been updated" });
-    }
+    },
   );
 
   private forgetPassword = errorHandler(async (req: Request, res: Response) => {
@@ -125,7 +130,7 @@ export class UserController {
         });
         return;
       }
-    }
+    },
   );
 
   private verifyTwoFA = errorHandler(async (req: Request, res: Response) => {
@@ -135,7 +140,18 @@ export class UserController {
       message: "Congratulations! Your Account has been verified",
     });
   });
-
+  private uploadAvatar = errorHandler(
+    async (req: AuthRequest, res: Response) => {
+      if (!req.file) {
+        return res.status(400).send({ message: "No file uploaded." });
+      }
+      const result = await this.controller.uploadAvatar(req.user, req.file);
+      res.status(200).send({
+        message: "Avatar uploaded successfully",
+        data: result,
+      });
+    },
+  );
   initRoutes() {
     this.router.post("/", validate(userSchema), this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
@@ -145,32 +161,38 @@ export class UserController {
     this.router.get(
       "/refresh-token",
       authRefreshToken,
-      this.refreshToken.bind(this)
+      this.refreshToken.bind(this),
     );
     this.router.patch(
       "/update-info",
       authentication,
-      this.updateInfo.bind(this)
+      this.updateInfo.bind(this),
     );
     this.router.delete(
       "/delete-account",
       authentication,
-      this.deleteAccount.bind(this)
+      this.deleteAccount.bind(this),
     );
     this.router.put(
       "/update-password",
       authentication,
       validate(updatePasswordSchema),
-      this.updatePassword.bind(this)
+      this.updatePassword.bind(this),
     );
     this.router.post("/forget-password", this.forgetPassword.bind(this));
     this.router.post("/reset-password/:token", this.resetPassword.bind(this));
     this.router.post(
       "/enable-2FA",
       authentication,
-      this.enableTwoFA.bind(this)
+      this.enableTwoFA.bind(this),
     );
     this.router.get("/verify-2fa/:token", this.verifyTwoFA.bind(this));
+    this.router.post(
+      "/upload-avatar",
+      upload,
+      authentication,
+      this.uploadAvatar.bind(this),
+    );
   }
   getRoutes() {
     return this.router;

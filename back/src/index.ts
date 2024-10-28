@@ -10,7 +10,17 @@ const app = express();
 app.use(express.json());
 
 app.use("/user", combinedRoutes);
-
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    console.error(err.stack);
+    res.status(500).send("Something went wrong!");
+  },
+);
 app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
   res.status(err.statusCode).json({
     status: err.status,
