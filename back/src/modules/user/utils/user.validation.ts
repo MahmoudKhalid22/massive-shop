@@ -20,7 +20,7 @@ export const userSchema = object({
         if (!value) return true;
         const isUnique = await checkEmailUnique(value);
         return isUnique;
-      },
+      }
     ),
   password: string().required().min(6),
   confirmPassword: string()
@@ -32,7 +32,7 @@ export const userSchema = object({
       function (value: string) {
         if (!value) return true;
         return value === this.parent.password;
-      },
+      }
     ),
 });
 
@@ -48,7 +48,6 @@ export const updatePasswordSchema = object({
         // Access the old password from the parent context
         const { oldPassword } = this.parent;
         return value !== oldPassword; // Ensure new password is different from old password
-      },
+      }
     ),
-  verifyWay: string().required().oneOf(["gmail", "whatsapp"]),
 });
