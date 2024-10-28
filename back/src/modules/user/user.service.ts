@@ -90,7 +90,7 @@ export class UserService implements UserDAO {
       const tokenTwoFA = jwt.sign(
         { _id: loggedUser._doc._id },
         process.env.JWT_SECRET as string,
-        { expiresIn: "1h" }
+        { expiresIn: "1h" },
       );
       const emailToSend = new LoginTwoFA(
         loggedUser._doc.email,
@@ -125,7 +125,7 @@ export class UserService implements UserDAO {
   async loginTwoFA(token: any): Promise<any> {
     const verifiedToken: any = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     ) as any;
     const user = await this.service.loginTwoFA(verifiedToken._id);
 
@@ -134,14 +134,14 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
-      }
+      },
     );
     const refreshToken = jwt.sign(
       { _id: user._id },
       process.env.JWT_SECRET_REFRESH as string,
       {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
-      }
+      },
     );
     user._doc.accessToken = accessToken;
     user._doc.refreshToken = refreshToken;
@@ -228,13 +228,13 @@ export class UserService implements UserDAO {
   async enableTwoFA(
     user: UserType,
     registerWay: string,
-    registerDetails: string
+    registerDetails: string,
   ): Promise<void> {
     if (registerWay === "gmail") {
       const token = jwt.sign(
         { field: registerDetails },
         process.env.JWT_SECRET_2FA as string,
-        { expiresIn: process.env.JWT_EXPIRES_IN_SECRET }
+        { expiresIn: process.env.JWT_EXPIRES_IN_SECRET },
       );
 
       const emailToSend = new TwoFactorActivationEmail(
@@ -255,9 +255,20 @@ export class UserService implements UserDAO {
   async verifyTwoFA(token: string): Promise<void> {
     const verified: VerifyTokenPayload = jwt.verify(
       token,
-      process.env.JWT_SECRET_2FA as string
+      process.env.JWT_SECRET_2FA as string,
     ) as VerifyTokenPayload;
 
     await this.service.verifyTwoFA(verified?.field);
+  }
+
+  async uploadAvatar(user: any, file: any): Promise<void> {
+    const avatarUploader = new AvatarUploader();
+
+    const uploadResult = await avatarUploader.uploadAvatar(file.path); // Assuming uploadImage handles the file buffer and user ID
+    const updatedUser = await this.service.updateUser(user, {
+      avatar: uploadResult.shareLink,
+    });
+
+    return updatedUser;
   }
 }
