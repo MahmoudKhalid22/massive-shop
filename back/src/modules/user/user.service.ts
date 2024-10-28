@@ -3,9 +3,17 @@ import jwt from "jsonwebtoken";
 import { UserDAO } from "../../utils/types/DAO";
 import { UserRepoType } from "./user.repo";
 import { UserType, VerifyTokenPayload } from "../../utils/types/types";
-import { EmailService } from "./utils/email.service";
 import { userSchema } from "./utils/user.validation";
 import { generateOTP } from "./utils/helpers";
+import { VerificationEmail } from "./utils/emails/verificationEmail";
+import {
+  resetPasswordLinkLocal,
+  verificationLinkLocal,
+  verifyTwoFALinkLocal,
+} from "../../config/config";
+import { LoginTwoFA } from "./utils/emails/loginTwoFA";
+import { PasswordResetEmail } from "./utils/emails/passwordEmail";
+import { TwoFactorActivationEmail } from "./utils/emails/verifyTwoFA";
 import { AvatarUploader } from "../../utils/media/AvatarUploader";
 
 export class UserService implements UserDAO {
@@ -24,19 +32,17 @@ export class UserService implements UserDAO {
         const verifyToken = jwt.sign(
           { email: user.email },
           process.env.JWT_SECRET as string,
-          { expiresIn: process.env.EXPIRES_IN_TOKEN },
+          { expiresIn: process.env.EXPIRES_IN_TOKEN }
         );
 
-        const emailToSend = new EmailService(
+        const emailToSend = new VerificationEmail(
           user.email,
           user.firstname + " " + user.lastname,
           verifyToken,
+          verificationLinkLocal(verifyToken)
         );
-        // try {
+
         await emailToSend.sendEmail();
-        // } catch (error) {
-        // console.log("error", error);
-        // }
       }
       if (user.registerWay === "whatsapp") {
         const otp = generateOTP();
@@ -47,7 +53,7 @@ export class UserService implements UserDAO {
       try {
         const avatarUploader = new AvatarUploader();
         const uploadResult = await avatarUploader.generateAndUploadAvatar(
-          user.firstname,
+          user.firstname
         );
         user.avatar = uploadResult.shareLink;
         console.log(uploadResult);
@@ -65,7 +71,7 @@ export class UserService implements UserDAO {
     try {
       const verified: VerifyTokenPayload = jwt.verify(
         token,
-        process.env.JWT_SECRET as string,
+        process.env.JWT_SECRET as string
       ) as VerifyTokenPayload;
 
       await this.service.verifyEmail(verified?.email);
@@ -86,13 +92,11 @@ export class UserService implements UserDAO {
         process.env.JWT_SECRET as string,
         { expiresIn: "1h" },
       );
-      const emailToSend = new EmailService(
+      const emailToSend = new LoginTwoFA(
         loggedUser._doc.email,
         loggedUser._doc.firstname + " " + loggedUser._doc.lastname,
         tokenTwoFA,
-        false,
-        false,
-        `http://localhost:3000/user/login-2fa/${tokenTwoFA}`,
+        verificationLinkLocal(tokenTwoFA)
       );
       await emailToSend.sendEmail();
       return loggedUser;
@@ -102,14 +106,14 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
-      },
+      }
     );
     const refreshToken = jwt.sign(
       { _id: loggedUser._id },
       process.env.JWT_SECRET_REFRESH as string,
       {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
-      },
+      }
     );
 
     loggedUser._doc.accessToken = accessToken;
@@ -153,13 +157,13 @@ export class UserService implements UserDAO {
     updatedValuesArr = [...new Set(updatedValuesArr)];
 
     const isValidUpdate = updatedValuesArr.every((key) =>
-      validValues.includes(key),
+      validValues.includes(key)
     );
     console.log(validValues, updatedValuesArr);
 
     if (!isValidUpdate) {
       throw new Error(
-        "Invalid fields in the update request! you can only update firstname, lastname and address",
+        "Invalid fields in the update request! you can only update firstname, lastname and address"
       );
     }
 
@@ -169,7 +173,7 @@ export class UserService implements UserDAO {
   async updatePassword(
     user: UserType,
     oldPassword: string,
-    newPassword: string,
+    newPassword: string
   ): Promise<void> {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
 
@@ -190,16 +194,16 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: "15m",
-      },
+      }
     );
 
     const user = await this.service.forgetPassword(email);
 
-    const emailToSend = new EmailService(
+    const emailToSend = new PasswordResetEmail(
       user.email,
       user.firstname + " " + user.lastname,
       resetPasswordToken,
-      true,
+      resetPasswordLinkLocal(resetPasswordToken)
     );
 
     await emailToSend.sendEmail();
@@ -208,11 +212,11 @@ export class UserService implements UserDAO {
   async resetPassword(
     e: string,
     token: string,
-    newPassword: string,
+    newPassword: string
   ): Promise<void> {
     const user: { email: string } = jwt.verify(
       token,
-      process.env.JWT_SECRET as string,
+      process.env.JWT_SECRET as string
     ) as { email: string };
     if (!user) throw new Error("token has been expired! try again");
 
@@ -233,12 +237,11 @@ export class UserService implements UserDAO {
         { expiresIn: process.env.JWT_EXPIRES_IN_SECRET },
       );
 
-      const emailToSend = new EmailService(
+      const emailToSend = new TwoFactorActivationEmail(
         user.email,
         user.firstname + " " + user.lastname,
         token,
-        false,
-        true,
+        verifyTwoFALinkLocal(token)
       );
       await emailToSend.sendEmail();
       return;

@@ -37,7 +37,6 @@ export class UserController {
       throw new Error("please provide email and password");
 
     const user = await this.controller.loginUser(req.body);
-    console.log(user);
     if (!user.twoFAEnabled) {
       res.send(user);
       return;

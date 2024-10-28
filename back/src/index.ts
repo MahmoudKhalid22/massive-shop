@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
-import dbConnection from "./config/dbConnection";
+import dbConnection from "./config/config";
 import { combinedRoutes } from "./router";
 import { CustomError } from "./utils/helper";
 
