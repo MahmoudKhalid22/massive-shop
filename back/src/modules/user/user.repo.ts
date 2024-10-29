@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { UserDAO } from "../../utils/types/DAO";
 import { UserType } from "../../utils/types/types";
 import User from "./user.model";
+import { Blacklist } from "./user.blacklist";
 
 export class UserRepo implements UserDAO {
   private model: Model<UserType>;
@@ -46,6 +47,13 @@ export class UserRepo implements UserDAO {
     const user = this.model.findOne({ _id: _id });
     if (!user) throw new Error("user is not found");
     return user;
+  }
+  async logoutUser(userId: any, token: string, expiresAt: any): Promise<void> {
+    await Blacklist.create({
+      token,
+      userId,
+      expiresAt,
+    });
   }
 
   async updateUser(user: any, updatedValues: any): Promise<void> {

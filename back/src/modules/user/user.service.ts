@@ -86,7 +86,6 @@ export class UserService implements UserDAO {
       throw new Error("please provide all details");
     }
     const loggedUser = await this.service.loginUser(user);
-    console.log(loggedUser);
     if (loggedUser.twoFAEnabled) {
       const tokenTwoFA = jwt.sign(
         { _id: loggedUser._doc._id },
@@ -148,6 +147,15 @@ export class UserService implements UserDAO {
     user._doc.accessToken = accessToken;
     user._doc.refreshToken = refreshToken;
     return user;
+  }
+
+  async logoutUser(_id: any, token: string): Promise<void> {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string, {
+      ignoreExpiration: true,
+    }) as { exp: number };
+
+    const expiresAt = new Date(decoded.exp * 1000);
+    await this.service.logoutUser(_id, token, expiresAt);
   }
 
   async updateUser(user: any, updatedValues: any): Promise<void> {

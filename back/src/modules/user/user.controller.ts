@@ -47,6 +47,11 @@ export class UserController {
     res.send(user);
   });
 
+  private logoutUser = errorHandler(async (req: AuthRequest, res:Response) => {
+    await this.controller.logoutUser(req.user._id, req.accessToken);
+    res.send({message: "you logged out successfully"})
+  })
+
   private getUser = errorHandler(async (req: AuthRequest, res: Response) => {
     res.send(req.user);
   });
@@ -140,6 +145,7 @@ export class UserController {
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
     this.router.post("/login", this.loginUser.bind(this));
     this.router.get("/login-2fa/:token", this.loginTwoFA.bind(this));
+    this.router.post("/logout", authentication, this.logoutUser.bind(this));
     this.router.get("/me", authentication, this.getUser.bind(this));
     this.router.get(
       "/refresh-token",

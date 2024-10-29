@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { errorHandler } from "../../../utils/helper";
+import { CustomError, errorHandler } from "../../../utils/helper";
 import User from "./../user.model";
 import { AuthRequest } from "../../../utils/types/types";
+import { Blacklist } from "../user.blacklist";
 // const authentication = errorHandler(
 //   async (req: AuthRequest, res: Response, next: NextFunction) => {
 //     const accessToken = req.header("Authorization")?.replace("Bearer ", "");
@@ -49,7 +50,7 @@ import { AuthRequest } from "../../../utils/types/types";
 const authenticateToken = (
   tokenType: "access" | "refresh",
   secretKey: string,
-  handlePostAuth?: (user: any) => Promise<string>,
+  handlePostAuth?: (user: any) => Promise<string>
 ) =>
   errorHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -59,8 +60,11 @@ const authenticateToken = (
         tokenType === "access"
           ? "Please login first"
           : "Login again, refresh failed";
-      throw new Error(errorMessage);
+      throw new CustomError(errorMessage, 401);
     }
+
+    const blacklistedToken = await Blacklist.findOne({ token });
+    if (blacklistedToken) throw new CustomError("Please login", 401);
 
     const verifiedUser: { _id: string } = jwt.verify(token, secretKey) as {
       _id: string;
@@ -81,7 +85,7 @@ const authenticateToken = (
 
 const authentication = authenticateToken(
   "access",
-  process.env.JWT_SECRET as string,
+  process.env.JWT_SECRET as string
 );
 
 const authRefreshToken = authenticateToken(
@@ -91,7 +95,7 @@ const authRefreshToken = authenticateToken(
     return jwt.sign({ _id: user._id }, process.env.JWT_SECRET as string, {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
     });
-  },
+  }
 );
 
 export { authentication, authRefreshToken };
