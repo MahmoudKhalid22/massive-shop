@@ -5,7 +5,7 @@ export class PasswordResetEmail extends EmailService {
     return `
           <h2>Hello, ${this.recieverName}</h2>
           <p>You requested a password reset. Click the link below to reset your password:</p>
-          <a href="${this.url}">Reset Password</a>
+          <a href=${this.url}>Reset Password</a>
           <p>If you didn't request this, please ignore this email.</p>
           <p>Thank you,<br>The Support Team</p>`;
   }

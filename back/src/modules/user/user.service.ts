@@ -7,6 +7,7 @@ import { userSchema } from "./utils/user.validation";
 import { generateOTP } from "./utils/helpers";
 import { VerificationEmail } from "./utils/emails/verificationEmail";
 import {
+  loginTwoFALinkLocal,
   resetPasswordLinkLocal,
   verificationLinkLocal,
   verifyTwoFALinkLocal,
@@ -52,12 +53,12 @@ export class UserService implements UserDAO {
       }
 
       try {
-        const avatarUploader = new AvatarUploader();
-        const uploadResult = await avatarUploader.generateAndUploadAvatar(
-          user.firstname,
-        );
-        user.avatar = uploadResult.shareLink;
-        console.log(uploadResult);
+        // const avatarUploader = new AvatarUploader();
+        // const uploadResult = await avatarUploader.generateAndUploadAvatar(
+        //   user.firstname
+        // );
+        // user.avatar = uploadResult.shareLink;
+        // console.log(uploadResult);
       } catch (error) {
         console.log("avatar error");
         console.log(error);
@@ -86,7 +87,7 @@ export class UserService implements UserDAO {
       throw new Error("please provide all details");
     }
     const loggedUser = await this.service.loginUser(user);
-
+    console.log(loggedUser);
     if (loggedUser.twoFAEnabled) {
       const tokenTwoFA = jwt.sign(
         { _id: loggedUser._doc._id },
@@ -97,7 +98,7 @@ export class UserService implements UserDAO {
         loggedUser._doc.email,
         loggedUser._doc.firstname + " " + loggedUser._doc.lastname,
         tokenTwoFA,
-        verificationLinkLocal(tokenTwoFA),
+        loginTwoFALinkLocal(tokenTwoFA)
       );
       await emailToSend.sendEmail();
       return loggedUser;
@@ -115,6 +116,7 @@ export class UserService implements UserDAO {
       token,
       process.env.JWT_SECRET as string,
     ) as any;
+    console.log(verifiedToken);
     const user = await this.service.loginTwoFA(verifiedToken._id);
 
     const accessToken = jwt.sign(
@@ -147,6 +149,8 @@ export class UserService implements UserDAO {
     const isValidUpdate = updatedValuesArr.every((key) =>
       validValues.includes(key),
     );
+    console.log(isValidUpdate);
+
     console.log(validValues, updatedValuesArr);
 
     if (!isValidUpdate) {
