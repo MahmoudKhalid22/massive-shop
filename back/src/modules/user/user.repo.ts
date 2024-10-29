@@ -22,7 +22,7 @@ export class UserRepo implements UserDAO {
     const user = await this.model.findOneAndUpdate(
       { email },
       { verified: true },
-      { new: true }
+      { new: true },
     );
     if (!user) throw new Error("user is not found");
   }
@@ -71,7 +71,7 @@ export class UserRepo implements UserDAO {
   async resetPassword(
     email: string,
     token: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<void> {
     const user = await this.model.findOne({ email });
     if (!user) throw new Error("user is not found");
@@ -82,15 +82,35 @@ export class UserRepo implements UserDAO {
   async enableTwoFA(
     user: UserType,
     registerWay: string,
-    registerDetails: string
+    registerDetails: string,
   ): Promise<void> {}
   async verifyTwoFA(email: string): Promise<void> {
     const user = await this.model.findOneAndUpdate(
       { email },
       { twoFAEnabled: true },
-      { new: true }
+      { new: true },
     );
     if (!user) throw new Error("user is not found");
+  }
+
+  async createGoogleUser(
+    email: string,
+    name: string,
+    picture: string,
+  ): Promise<any> {
+    let user = await this.model.findOne({ email });
+    if (!user) {
+      user = new this.model({
+        email,
+        firstname: name,
+        lastname: "",
+        picture,
+        role: "user",
+        verified: true,
+      });
+      await user.save();
+    }
+    return user;
   }
 }
 

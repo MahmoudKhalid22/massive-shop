@@ -15,6 +15,7 @@ import { LoginTwoFA } from "./utils/emails/loginTwoFA";
 import { PasswordResetEmail } from "./utils/emails/passwordEmail";
 import { TwoFactorActivationEmail } from "./utils/emails/verifyTwoFA";
 import { AvatarUploader } from "../../utils/media/AvatarUploader";
+import { OAuth2Client } from "google-auth-library";
 
 export class UserService implements UserDAO {
   private service: UserRepoType;
@@ -32,14 +33,14 @@ export class UserService implements UserDAO {
         const verifyToken = jwt.sign(
           { email: user.email },
           process.env.JWT_SECRET as string,
-          { expiresIn: process.env.EXPIRES_IN_TOKEN }
+          { expiresIn: process.env.EXPIRES_IN_TOKEN },
         );
 
         const emailToSend = new VerificationEmail(
           user.email,
           user.firstname + " " + user.lastname,
           verifyToken,
-          verificationLinkLocal(verifyToken)
+          verificationLinkLocal(verifyToken),
         );
 
         await emailToSend.sendEmail();
@@ -53,7 +54,7 @@ export class UserService implements UserDAO {
       try {
         const avatarUploader = new AvatarUploader();
         const uploadResult = await avatarUploader.generateAndUploadAvatar(
-          user.firstname
+          user.firstname,
         );
         user.avatar = uploadResult.shareLink;
         console.log(uploadResult);
@@ -71,7 +72,7 @@ export class UserService implements UserDAO {
     try {
       const verified: VerifyTokenPayload = jwt.verify(
         token,
-        process.env.JWT_SECRET as string
+        process.env.JWT_SECRET as string,
       ) as VerifyTokenPayload;
 
       await this.service.verifyEmail(verified?.email);
@@ -96,25 +97,12 @@ export class UserService implements UserDAO {
         loggedUser._doc.email,
         loggedUser._doc.firstname + " " + loggedUser._doc.lastname,
         tokenTwoFA,
-        verificationLinkLocal(tokenTwoFA)
+        verificationLinkLocal(tokenTwoFA),
       );
       await emailToSend.sendEmail();
       return loggedUser;
     }
-    const accessToken = jwt.sign(
-      { _id: loggedUser._id },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
-      }
-    );
-    const refreshToken = jwt.sign(
-      { _id: loggedUser._id },
-      process.env.JWT_SECRET_REFRESH as string,
-      {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
-      }
-    );
+    const [accessToken, refreshToken] = this.generateJWT(loggedUser);
 
     loggedUser._doc.accessToken = accessToken;
     loggedUser._doc.refreshToken = refreshToken;
@@ -157,13 +145,13 @@ export class UserService implements UserDAO {
     updatedValuesArr = [...new Set(updatedValuesArr)];
 
     const isValidUpdate = updatedValuesArr.every((key) =>
-      validValues.includes(key)
+      validValues.includes(key),
     );
     console.log(validValues, updatedValuesArr);
 
     if (!isValidUpdate) {
       throw new Error(
-        "Invalid fields in the update request! you can only update firstname, lastname and address"
+        "Invalid fields in the update request! you can only update firstname, lastname and address",
       );
     }
 
@@ -173,7 +161,7 @@ export class UserService implements UserDAO {
   async updatePassword(
     user: UserType,
     oldPassword: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<void> {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
 
@@ -194,7 +182,7 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: "15m",
-      }
+      },
     );
 
     const user = await this.service.forgetPassword(email);
@@ -203,7 +191,7 @@ export class UserService implements UserDAO {
       user.email,
       user.firstname + " " + user.lastname,
       resetPasswordToken,
-      resetPasswordLinkLocal(resetPasswordToken)
+      resetPasswordLinkLocal(resetPasswordToken),
     );
 
     await emailToSend.sendEmail();
@@ -212,11 +200,11 @@ export class UserService implements UserDAO {
   async resetPassword(
     e: string,
     token: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<void> {
     const user: { email: string } = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     ) as { email: string };
     if (!user) throw new Error("token has been expired! try again");
 
@@ -241,7 +229,7 @@ export class UserService implements UserDAO {
         user.email,
         user.firstname + " " + user.lastname,
         token,
-        verifyTwoFALinkLocal(token)
+        verifyTwoFALinkLocal(token),
       );
       await emailToSend.sendEmail();
       return;
@@ -270,5 +258,41 @@ export class UserService implements UserDAO {
     });
 
     return updatedUser;
+  }
+  async handleGoogleCallback(payload: any): Promise<any> {
+    const { email, sub: googleId, name, picture } = payload;
+    if (!email || !googleId || !name || !picture) {
+      throw new Error("Invalid Google token");
+    }
+
+    console.log("payload", payload);
+
+    let user = await this.service.createGoogleUser(email, name, picture);
+    const [accessToken, refreshToken] = this.generateJWT(user);
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private generateJWT(user: any): [string, string] {
+    const accessToken = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
+      },
+    );
+    const refreshToken = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET_REFRESH as string,
+      {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
+      },
+    );
+
+    return [accessToken, refreshToken];
   }
 }

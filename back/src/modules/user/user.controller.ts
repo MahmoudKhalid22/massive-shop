@@ -6,7 +6,8 @@ import { authentication, authRefreshToken } from "./middlewares/middleware";
 import { userSchema, updatePasswordSchema } from "./utils/user.validation"; // Adjust import based on your structure
 import { validate } from "./middlewares/validation.middleware";
 import multer from "multer"; // For handling multipart/form-data
-
+import axios from "axios";
+import { OAuth2Client } from "google-auth-library";
 const storage = multer.memoryStorage(); // Store files in memory (for simplicity)
 
 const upload = multer({ storage }).single("avatar");
@@ -151,6 +152,69 @@ export class UserController {
       });
     },
   );
+
+  private googleAuth = async (req: Request, res: Response) => {
+    const googleClientID = process.env.GOOGLE_CLIENT_ID;
+    const redirectUri = `http://localhost:3000/user/auth/google/callback`; // Adjust this as per your domain
+
+    const googleOAuthURL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientID}&redirect_uri=${redirectUri}&response_type=code&scope=openid%20email%20profile`;
+
+    res.redirect(googleOAuthURL);
+  };
+
+  private googleAuthCallback = async (
+    req: Request,
+    res: Response,
+  ): Promise<void> => {
+    const { code } = req.query;
+    if (!code) {
+      res.status(400).send({ message: "No auth code provided" });
+      return;
+    }
+
+    const googleClientID = process.env.GOOGLE_CLIENT_ID as string;
+    const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET as string;
+    const redirectUri = `http://localhost:3000/user/auth/google/callback`;
+
+    try {
+      const tokenResponse = await axios.post(
+        `https://oauth2.googleapis.com/token`,
+        {
+          code,
+          client_id: googleClientID,
+          client_secret: googleClientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        },
+      );
+
+      const { id_token } = tokenResponse.data;
+
+      const client = new OAuth2Client(googleClientID);
+      const ticket = await client.verifyIdToken({
+        idToken: id_token,
+        audience: googleClientID,
+      });
+
+      const payload = ticket.getPayload();
+      if (!payload) {
+        res
+          .status(400)
+          .send({ message: "Failed to get user info from Google" });
+        return;
+      }
+      const result = await this.controller.handleGoogleCallback(payload);
+
+      res.send({
+        message: "Logged in successfully",
+        data: result,
+      });
+    } catch (error) {
+      console.error("Error during Google OAuth", error);
+      res.status(500).send({ message: "Google authentication failed" });
+    }
+  };
+
   initRoutes() {
     this.router.post("/", validate(userSchema), this.createUser.bind(this));
     this.router.get("/verify/:token", this.verifyEmail.bind(this));
@@ -192,6 +256,9 @@ export class UserController {
       authentication,
       this.uploadAvatar.bind(this),
     );
+
+    this.router.get("/auth/google", this.googleAuth); // Google Login Route
+    this.router.get("/auth/google/callback", this.googleAuthCallback); // Google Callback Route
   }
   getRoutes() {
     return this.router;
